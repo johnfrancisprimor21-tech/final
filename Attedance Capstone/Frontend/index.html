@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendTrack Student Attendance System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Nunito:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #060912;
+      --bg2:      #0a0e1f;
+      --surface:  rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border:   rgba(34,211,238,0.12);
+      --border2:  rgba(34,211,238,0.25);
+      --accent:   #22d3ee;
+      --accent2:  #a78bfa;
+      --gold:     #fbbf24;
+      --success:  #4ade80;
+      --text:     #f0f4ff;
+      --muted:    #64748b;
+      --muted2:   #94a3b8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Subtle noise texture overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── THREE.JS CANVAS ── */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 60px;
+      background: rgba(6,9,18,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.5px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+    .logo-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-left: 2px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(0.7);} }
+
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    .nav-link {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted2);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    .nav-btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(34,211,238,0.3);
+    }
+    .nav-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 24px rgba(34,211,238,0.4); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 140px 24px 80px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent);
+      background: rgba(34,211,238,0.08);
+      border: 1px solid rgba(34,211,238,0.25);
+      padding: 6px 18px;
+      border-radius: 100px;
+      letter-spacing: 2px;
+      margin-bottom: 44px;
+      animation: fadeUp 0.8s ease both;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -3px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .hero-title .line1 { display: block; color: var(--text); }
+    .hero-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      color: var(--muted2);
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 52px;
+      font-weight: 400;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+
+    .btn-primary {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--bg);
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      border: none;
+      padding: 15px 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.2px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 0 32px rgba(34,211,238,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(34,211,238,0.45); }
+
+    .btn-ghost {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 15px 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── GLOW ORBS ── */
+    .hero-glow-1 {
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 60%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── STATS STRIP ── */
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,14,31,0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .stat {
+      flex: 1;
+      max-width: 240px;
+      padding: 44px 32px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 100px 24px 48px;
+    }
+    .section-label .overline {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .section-label h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+    }
+    .section-label p {
+      font-size: 1rem;
+      color: var(--muted2);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(34,211,238,0.05) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      transform: scaleX(0);
+      transition: transform 0.35s;
+    }
+    .feature-card:hover { border-color: var(--border2); transform: translateY(-6px); background: var(--surface2); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card:hover::after { transform: scaleX(1); }
+    .feature-card:hover .feature-icon { background: rgba(34,211,238,0.15); border-color: var(--accent); box-shadow: 0 0 20px rgba(34,211,238,0.2); }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: rgba(34,211,238,0.06);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--accent);
+      margin-bottom: 22px;
+      transition: all 0.3s;
+    }
+    .feature-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .feature-desc {
+      font-size: 0.88rem;
+      color: var(--muted2);
+      line-height: 1.7;
+    }
+
+    /* ── ROLES ── */
+    .roles {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .role-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+      overflow: hidden;
+    }
+    .role-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .role-card:hover { transform: translateY(-8px); border-color: transparent; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+    .role-card:hover::before { opacity: 1; }
+    .role-card:hover .role-arrow { transform: translateX(4px); opacity: 1; }
+
+    .role-icon {
+      width: 64px; height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 24px;
+    }
+    .role-card:first-child .role-icon { background: rgba(34,211,238,0.1); color: var(--accent); border: 1px solid rgba(34,211,238,0.2); }
+    .role-card:last-child  .role-icon { background: rgba(167,139,250,0.1); color: var(--accent2); border: 1px solid rgba(167,139,250,0.2); }
+
+    .role-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .role-desc {
+      font-size: 0.9rem;
+      color: var(--muted2);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .role-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.3px;
+    }
+    .role-arrow { transition: all 0.2s; opacity: 0.6; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 40px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer .logo { font-size: 1rem; }
+    footer span { font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 24px; }
+      .nav-link { display: none; }
+      footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#22d3ee">
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon"><i class="fas fa-user-check" style="color:var(--bg)"></i></div>
+    AttendTrack<span class="logo-dot"></span>
+  </div>
+  <div class="nav-right">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#roles" class="nav-link">Roles</a>
+    <a href="login.html" class="nav-btn">Sign In →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow-1"></div>
+  <div class="badge">
+    <span class="badge-dot"></span>
+    CAPSTONE PROJECT
+  </div>
+  <h1 class="hero-title">
+    <span class="line1">Smart Attendance</span>
+    <span class="line2">for Modern Classes</span>
+  </h1>
+  <p class="hero-sub">
+    A full-stack attendance management system built for students and teachers.
+    Track presence, manage courses, and view reports all in one place.
+  </p>
+  <div class="hero-actions">
+    <a href="login.html" class="btn-primary">
+      Get Started <i class="fas fa-arrow-right"></i>
+    </a>
+    <a href="#features" class="btn-ghost">
+      <i class="fas fa-play-circle"></i> See Features
+    </a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <span class="stat-num">2</span>
+    <span class="stat-label">User Roles</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">100%</span>
+    <span class="stat-label">Web Based</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">Real‑time</span>
+    <span class="stat-label">Attendance Tracking</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">Secure</span>
+    <span class="stat-label">Session Auth</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div id="features" class="section-label">
+  <span class="overline">What It Can Do</span>
+  <h2>Everything You Need</h2>
+  <p>Built with ASP.NET Core backend and a clean vanilla JS frontend</p>
+</div>
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-user-shield"></i></div>
+    <div class="feature-title">Secure Authentication</div>
+    <div class="feature-desc">Username and password login with session tokens. Forgot password recovery via security questions.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-clipboard-check"></i></div>
+    <div class="feature-title">Attendance Tracking</div>
+    <div class="feature-desc">Students check in with status Present, Absent, Late, or Excused with date and course details.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+    <div class="feature-title">Reports & Stats</div>
+    <div class="feature-desc">View weekly and monthly attendance reports. Track streaks, rates, and overall performance at a glance.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+    <div class="feature-title">Course Management</div>
+    <div class="feature-desc">Students can add and manage their enrolled courses, including instructor info and schedules.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="feature-title">Teacher Dashboard</div>
+    <div class="feature-desc">Teachers can view and mark attendance for their students, manage sections and generate summaries.</div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="fas fa-palette"></i></div>
+    <div class="feature-title">Customizable UI</div>
+    <div class="feature-desc">Switch between dark and light themes and choose your preferred accent color. Settings persist across sessions.</div>
+  </div>
+</div>
+
+<!-- ROLES -->
+<div id="roles" class="section-label">
+  <span class="overline">Access</span>
+  <h2>Choose Your Role</h2>
+  <p>Sign in and select how you want to access the system</p>
+</div>
+<div class="roles">
+  <a href="login.html" class="role-card">
+    <div class="role-icon"><i class="fas fa-user-graduate"></i></div>
+    <div class="role-title">Student</div>
+    <div class="role-desc">Track your own attendance, manage your courses, and view your personal reports.</div>
+    <span class="role-link">Access Student Dashboard <i class="fas fa-arrow-right role-arrow"></i></span>
+  </a>
+  <a href="login.html" class="role-card">
+    <div class="role-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="role-title">Teacher</div>
+    <div class="role-desc">Mark attendance for your students, manage sections, and view class-wide summaries.</div>
+    <span class="role-link">Access Teacher Dashboard <i class="fas fa-arrow-right role-arrow"></i></span>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">
+    <div class="logo-icon"><i class="fas fa-user-check" style="color:var(--bg)"></i></div>
+    AttendTrack
+  </div>
+  <span>MiniCapstone &nbsp;·&nbsp; Built with ASP.NET Core + Vanilla JS</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── THREE.JS NETWORK GLOBE ──────────────────────────────
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 18;
+
+  // Node positions on sphere (Fibonacci distribution)
+  const N = 120;
+  const positions = [];
+  const R = 7.5;
+  for (let i = 0; i < N; i++) {
+    const phi = Math.acos(1 - 2 * (i + 0.5) / N);
+    const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+    positions.push(new THREE.Vector3(
+      R * Math.sin(phi) * Math.cos(theta),
+      R * Math.sin(phi) * Math.sin(theta),
+      R * Math.cos(phi)
+    ));
+  }
+
+  // Draw connection lines between nearby nodes
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.15 });
+  const lineGroup = new THREE.Group();
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      if (positions[i].distanceTo(positions[j]) < 3.8) {
+        const geo = new THREE.BufferGeometry().setFromPoints([positions[i], positions[j]]);
+        lineGroup.add(new THREE.Line(geo, lineMat));
+      }
+    }
+  }
+  scene.add(lineGroup);
+
+  // Node dots
+  const nodeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+  const nodeMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+  const nodeGroup = new THREE.Group();
+  positions.forEach(p => {
+    const mesh = new THREE.Mesh(nodeGeo, nodeMat);
+    mesh.position.copy(p);
+    nodeGroup.add(mesh);
+  });
+  scene.add(nodeGroup);
+
+  // A few larger "active" nodes in violet
+  const activeGeo = new THREE.SphereGeometry(0.14, 10, 10);
+  const activeMat = new THREE.MeshBasicMaterial({ color: 0xa78bfa });
+  [5, 22, 47, 83, 102].forEach(i => {
+    const m = new THREE.Mesh(activeGeo, activeMat);
+    m.position.copy(positions[i]);
+    nodeGroup.add(m);
+  });
+
+  // Floating particles outside the sphere
+  const pCount = 200;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount * 3; i++) pPos[i] = (Math.random() - 0.5) * 40;
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.05, transparent: true, opacity: 0.4 });
+  scene.add(new THREE.Points(pGeo, pMat));
+
+  // Mouse parallax
+  let mx = 0, my = 0;
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth - 0.5) * 2;
+    my = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    lineGroup.rotation.y = t * 0.06 + mx * 0.3;
+    lineGroup.rotation.x = t * 0.03 + my * 0.15;
+    nodeGroup.rotation.y = lineGroup.rotation.y;
+    nodeGroup.rotation.x = lineGroup.rotation.x;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+// ── SCROLL ANIMATIONS ──────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const cards = document.querySelectorAll('.feature-card, .role-card, .stat');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '0';
+        entry.target.style.transform = 'translateY(24px)';
+        setTimeout(() => {
+          entry.target.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }, 60);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  cards.forEach(card => observer.observe(card));
+});
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('[SW] Registered'))
+        .catch(err => console.warn('[SW] Failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

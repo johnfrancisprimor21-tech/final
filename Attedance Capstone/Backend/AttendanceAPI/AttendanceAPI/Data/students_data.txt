@@ -1,0 +1,4 @@
+STU001|Student|johnfrancisprimon1@gmail.com|2513190|Engineering|2nd Year|555-1234|2025-01-01|true|2026-03-25 01:12:21
+2513190|ngek|johnfrancisprimor1@gmail.com|2513190||||2026-03-25|true|2026-03-27 20:12:17
+2513191|ohyeaahh|exampleee3mai@gmail.com|2513191||||2026-03-27|true|2026-03-27 20:13:10
+itsmejohnfrancis|primor|johnfrancisprimor21@gmail.com|2513191||||2026-04-01|true|2026-04-01 18:50:03

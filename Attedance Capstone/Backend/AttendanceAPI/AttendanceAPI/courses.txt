@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "studentId": "2513190",
+    "courseCode": "cs102",
+    "courseName": "engineering",
+    "instructorEmail": "joff",
+    "schedule": "Mon 9:00am",
+    "room": "",
+    "building": "",
+    "createdAt": "2026-03-25T12:42:14.9401524+08:00"
+  }
+]

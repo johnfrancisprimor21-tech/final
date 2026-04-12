@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance System Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Nunito:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #060912;
+      --surface:  #0d1124;
+      --surface2: #131829;
+      --border:   rgba(34,211,238,0.12);
+      --border2:  rgba(34,211,238,0.28);
+      --accent:   #22d3ee;
+      --accent2:  #a78bfa;
+      --success:  #4ade80;
+      --error:    #f87171;
+      --warning:  #fbbf24;
+      --text:     #f0f4ff;
+      --muted:    #64748b;
+      --muted2:   #94a3b8;
+      --radius:   14px;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow-x: hidden;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      overflow: hidden;
+    }
+
+    #three-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+
+    .left-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+    .brand-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: 0 0 30px rgba(34,211,238,0.35);
+    }
+    .brand-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .left-headline {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+    }
+    .left-headline .hl {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .left-sub {
+      font-size: 1rem;
+      color: var(--muted2);
+      line-height: 1.7;
+      max-width: 380px;
+      margin: 0 auto 44px;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      color: var(--muted2);
+      width: 100%;
+    }
+    .pill i { color: var(--accent); font-size: 0.9rem; width: 16px; }
+
+    /* gradient line separator */
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 10%; bottom: 10%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--border2), transparent);
+    }
+
+    /* ── RIGHT PANEL (AUTH CARD) ── */
+    .right-panel {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 60px 60px;
+      overflow-y: auto;
+      background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      padding-top: 20px;
+    }
+
+    /* ── LOGO BLOCK (mobile only) ── */
+    .logo-block {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: var(--bg);
+      box-shadow: 0 0 20px rgba(34,211,238,0.3);
+    }
+    .logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem; font-weight: 800; letter-spacing: -0.3px;
+    }
+    .logo-text span {
+      display: block;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 400;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── PANELS ── */
+    .panel { display: none; animation: fadePanel .25s ease both; }
+    .panel.active { display: block; }
+    @keyframes fadePanel {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PANEL HEADINGS ── */
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
+    }
+    .panel-sub {
+      font-size: 0.88rem;
+      color: var(--muted2);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-family: 'Space Mono', monospace;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap i {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.88rem;
+      pointer-events: none;
+    }
+    .input-wrap input {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      background: var(--surface2);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .input-wrap input:focus {
+      border-color: var(--accent);
+      background: rgba(34,211,238,0.04);
+      box-shadow: 0 0 0 3px rgba(34,211,238,0.1);
+    }
+    .input-wrap input::placeholder { color: var(--muted); opacity: 0.5; }
+    .input-wrap input:-webkit-autofill,
+    .input-wrap input:-webkit-autofill:hover,
+    .input-wrap input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 99px var(--surface2) inset !important;
+      -webkit-text-fill-color: var(--text) !important;
+      caret-color: var(--text);
+      border-color: rgba(255,255,255,0.07) !important;
+    }
+
+    .pw-toggle {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: var(--muted);
+      cursor: pointer; font-size: 0.85rem; transition: color .2s; z-index: 2;
+    }
+    .pw-toggle:hover { color: var(--text); }
+    .input-wrap:has(.pw-toggle) input { padding-right: 44px; }
+
+    /* strength bar */
+    .strength-bar { display: flex; gap: 4px; margin-top: 8px; height: 3px; }
+    .strength-seg { flex: 1; border-radius: 99px; background: rgba(255,255,255,0.08); transition: background .3s; }
+    .strength-seg.weak   { background: var(--error); }
+    .strength-seg.medium { background: var(--warning); }
+    .strength-seg.strong { background: var(--success); }
+    .strength-label { font-size: 0.72rem; color: var(--muted); margin-top: 5px; min-height: 1em; }
+
+    /* ── BUTTON ── */
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 0 28px rgba(34,211,238,0.25);
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.2px;
+    }
+    .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 6px 32px rgba(34,211,238,0.35); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary .spinner {
+      display: none; width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: var(--bg); border-radius: 50%;
+      animation: spin .6s linear infinite; margin: 0 auto;
+    }
+    .btn-primary.loading .btn-text { display: none; }
+    .btn-primary.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-link {
+      background: none; border: none; color: var(--accent);
+      font-family: 'Nunito', sans-serif; font-size: 0.88rem;
+      font-weight: 700; cursor: pointer; padding: 0; transition: opacity .2s;
+    }
+    .btn-link:hover { opacity: 0.75; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 24px 0; color: var(--muted); font-size: 0.78rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07);
+    }
+
+    /* ── FOOTER LINK ── */
+    .footer-link {
+      text-align: center; margin-top: 24px;
+      font-size: 0.875rem; color: var(--muted2);
+    }
+
+    /* ── ALERTS ── */
+    .alert {
+      display: none; padding: 12px 16px; border-radius: 10px;
+      font-size: 0.875rem; margin-bottom: 18px;
+      align-items: center; gap: 10px;
+    }
+    .alert.show { display: flex; animation: fadePanel .2s ease; }
+    .alert.error   { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.25); color: #fca5a5; }
+    .alert.success { background: rgba(74,222,128,.1);  border: 1px solid rgba(74,222,128,.25);  color: #86efac; }
+    .alert.warning { background: rgba(251,191,36,.1);  border: 1px solid rgba(251,191,36,.25);  color: #fde68a; }
+    .alert i { flex-shrink: 0; }
+
+    /* ── SECURITY QUESTION SELECT ── */
+    select.sec-select {
+      width: 100%; padding: 13px 14px;
+      background: var(--surface2);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif; font-size: 0.9rem;
+      outline: none; cursor: pointer; transition: border-color .2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    select.sec-select:focus { border-color: var(--accent); }
+    select.sec-select option { background: var(--surface2); }
+
+    /* ── BACK LINK ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted2); font-size: 0.85rem; cursor: pointer;
+      margin-bottom: 28px; transition: color .2s;
+      background: none; border: none; font-family: 'Nunito', sans-serif;
+    }
+    .back-link:hover { color: var(--text); }
+
+    /* ── STEP INDICATORS ── */
+    .step-indicator { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); transition: background .3s, transform .3s;
+    }
+    .step-dot.active { background: var(--accent); transform: scale(1.3); }
+    .step-dot.done   { background: var(--success); }
+    .step-label { font-size: 0.75rem; color: var(--muted); margin-left: 4px; font-family: 'Space Mono', monospace; }
+
+    /* ── LOCKOUT BAR ── */
+    .lockout-bar {
+      display: none;
+      background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 18px;
+      font-size: 0.87rem; color: #fca5a5; text-align: center;
+    }
+    .lockout-bar.show { display: block; }
+
+    /* ── PW REQUIREMENTS ── */
+    .pw-reqs { margin-top: 10px; display: none; flex-direction: column; gap: 4px; }
+    .pw-reqs.show { display: flex; }
+    .req-item { display: flex; align-items: center; gap: 7px; font-size: 0.76rem; color: var(--muted); transition: color .2s; }
+    .req-item i { width: 12px; font-size: 0.72rem; }
+    .req-item.met { color: var(--success); }
+    .req-item.met i::before { content: "\f00c"; }
+
+    /* ── CHECKBOX ── */
+    .check-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+    .check-field input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 1px; flex-shrink: 0; cursor: pointer; }
+    .check-field label { font-size: 0.85rem; color: var(--muted2); cursor: pointer; line-height: 1.4; }
+    .check-field label a { color: var(--accent); }
+
+    /* ── USERNAME STATUS ── */
+    #usernameStatus {
+      margin-top: 8px; padding: 8px 12px; margin-bottom: 0;
+      border-radius: 8px; font-size: 0.82rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      body { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 40px 24px; }
+      .logo-block { display: flex; }
+      .auth-card { padding-top: 0; }
+    }
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#22d3ee">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AttendTrack">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+
+<!-- LEFT PANEL with Three.js -->
+<div class="left-panel">
+  <canvas id="three-canvas"></canvas>
+  <div class="left-content">
+    <div class="brand-logo">
+      <div class="brand-icon"><i class="fas fa-user-check" style="color:var(--bg)"></i></div>
+      <div class="brand-text">AttendTrack</div>
+    </div>
+    <h2 class="left-headline">
+      Your Academic<br><span class="hl">Attendance Hub</span>
+    </h2>
+    <p class="left-sub">
+      Seamlessly track attendance, manage courses, and generate reports all from one beautiful dashboard.
+    </p>
+    <div class="feature-pills">
+      <div class="pill"><i class="fas fa-shield-alt"></i> Secure session-based authentication</div>
+      <div class="pill"><i class="fas fa-clock"></i> Real-time attendance tracking</div>
+      <div class="pill"><i class="fas fa-chart-bar"></i> Visual reports & analytics</div>
+      <div class="pill"><i class="fas fa-users"></i> Teacher & student roles</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+<div class="auth-card">
+
+  <!-- LOGO (mobile) -->
+  <div class="logo-block">
+    <div class="logo-icon"><i class="fas fa-user-check"></i></div>
+    <div class="logo-text">
+      AttendTrack
+      <span>Attendance System</span>
+    </div>
+  </div>
+
+  <!-- ══ SIGN IN ══ -->
+  <div class="panel active" id="panelSignIn">
+    <h1 class="panel-title">Welcome back</h1>
+    <p class="panel-sub">Sign in to continue to your dashboard.</p>
+
+    <div class="lockout-bar" id="lockoutBar">
+      <i class="fas fa-lock"></i>
+      Account locked. Try again in <strong id="lockoutTimer">—</strong>
+    </div>
+
+    <div class="alert error" id="signInError"><i class="fas fa-circle-xmark"></i><span></span></div>
+    <div class="alert success" id="signInSuccess"><i class="fas fa-circle-check"></i><span></span></div>
+
+    <div class="field">
+      <label>Username</label>
+      <div class="input-wrap">
+        <i class="fas fa-user"></i>
+        <input type="text" id="siUsername" placeholder="your username" autocomplete="username" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password" />
+        <button class="pw-toggle" type="button" onclick="togglePw('siPassword', this)"><i class="fas fa-eye"></i></button>
+      </div>
+    </div>
+
+    <div style="text-align:right; margin-top:-8px; margin-bottom:22px;">
+      <button class="btn-link" onclick="showPanel('panelForgot')">Forgot password?</button>
+    </div>
+
+    <button class="btn-primary" id="signInBtn" onclick="handleSignIn()">
+      <span class="btn-text">Sign In</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="footer-link">
+      Don't have an account?
+      <button class="btn-link" onclick="showPanel('panelRegister')">Create account</button>
+    </div>
+  </div>
+
+  <!-- ══ REGISTER ══ -->
+  <div class="panel" id="panelRegister">
+    <button class="back-link" onclick="showPanel('panelSignIn')">
+      <i class="fas fa-arrow-left"></i> Back to sign in
+    </button>
+
+    <div class="step-indicator" id="regStepIndicator">
+      <div class="step-dot active" id="rDot1"></div>
+      <div class="step-dot" id="rDot2"></div>
+      <div class="step-dot" id="rDot3"></div>
+      <span class="step-label" id="rStepLabel">Account details</span>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="regStep1">
+      <h1 class="panel-title">Create account</h1>
+      <p class="panel-sub">Set up your username and password.</p>
+
+      <div class="alert error" id="regError1"><i class="fas fa-circle-xmark"></i><span></span></div>
+
+      <div class="field">
+        <label>Full Name</label>
+        <div class="input-wrap">
+          <i class="fas fa-id-card"></i>
+          <input type="text" id="regFullName" placeholder="John Francis C. Primor" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-at"></i>
+          <input type="text" id="regUsername" placeholder="choose a username" autocomplete="off" oninput="checkUsernameAvailability()" />
+        </div>
+        <div class="alert" id="usernameStatus" style="margin-top:8px;padding:8px 12px;margin-bottom:0;"></div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="regPassword" placeholder="min 8 characters" autocomplete="new-password" oninput="checkPasswordStrength()" />
+          <button class="pw-toggle" type="button" onclick="togglePw('regPassword', this)"><i class="fas fa-eye"></i></button>
+        </div>
+        <div class="strength-bar" id="strengthBar">
+          <div class="strength-seg" id="seg1"></div>
+          <div class="strength-seg" id="seg2"></div>
+          <div class="strength-seg" id="seg3"></div>
+          <div class="strength-seg" id="seg4"></div>
+        </div>
+        <div class="strength-label" id="strengthLabel"></div>
+        <div class="pw-reqs" id="pwReqs">
+          <div class="req-item" id="req-len"><i class="fas fa-circle"></i> At least 8 characters</div>
+          <div class="req-item" id="req-up"><i class="fas fa-circle"></i> Uppercase letter</div>
+          <div class="req-item" id="req-num"><i class="fas fa-circle"></i> Number</div>
+          <div class="req-item" id="req-sym"><i class="fas fa-circle"></i> Symbol (!@#$…)</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="regConfirm" placeholder="repeat password" autocomplete="new-password" />
+          <button class="pw-toggle" type="button" onclick="togglePw('regConfirm', this)"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="regStep1Next()">
+        <span class="btn-text">Continue</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="regStep2" style="display:none;">
+      <h1 class="panel-title">Security question</h1>
+      <p class="panel-sub">This lets you reset your password if you ever forget it.</p>
+
+      <div class="alert error" id="regError2"><i class="fas fa-circle-xmark"></i><span></span></div>
+
+      <div class="field">
+        <label>Security Question</label>
+        <select class="sec-select" id="regSecQuestion" onchange="toggleCustomSecQuestion()">
+          <option value="">— Choose a question —</option>
+          <option>What was the name of your first pet?</option>
+          <option>What is your mother's maiden name?</option>
+          <option>What city were you born in?</option>
+          <option>What was the name of your elementary school?</option>
+          <option>What is your oldest sibling's middle name?</option>
+          <option>What street did you grow up on?</option>
+          <option>What was your childhood nickname?</option>
+          <option value="__custom__">✏️ Write my own question…</option>
+        </select>
+      </div>
+
+      <div class="field" id="customSecQuestionField" style="display:none;">
+        <label>Your Custom Question</label>
+        <div class="input-wrap">
+          <i class="fas fa-pencil"></i>
+          <input type="text" id="regSecQuestionCustom" placeholder="e.g. What is your favourite movie?" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Your Answer</label>
+        <div class="input-wrap">
+          <i class="fas fa-key"></i>
+          <input type="text" id="regSecAnswer" placeholder="case-insensitive" autocomplete="off" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="regStep2Next()">
+        <span class="btn-text">Continue</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="regStep3" style="display:none;">
+      <div style="text-align:center;padding:30px 0 10px;">
+        <div style="font-size:3.5rem;margin-bottom:20px;">🎉</div>
+        <h1 class="panel-title" style="font-size:1.45rem;">Account created!</h1>
+        <p class="panel-sub" style="margin-bottom:28px;">You're all set. Sign in to access your dashboard.</p>
+        <button class="btn-primary" onclick="showPanel('panelSignIn')" style="max-width:240px;margin:0 auto;display:block;">
+          <span class="btn-text">Sign In Now</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FORGOT PASSWORD ══ -->
+  <div class="panel" id="panelForgot">
+    <button class="back-link" onclick="showPanel('panelSignIn')">
+      <i class="fas fa-arrow-left"></i> Back to sign in
+    </button>
+
+    <div class="step-indicator">
+      <div class="step-dot active" id="fDot1"></div>
+      <div class="step-dot" id="fDot2"></div>
+      <div class="step-dot" id="fDot3"></div>
+      <span class="step-label" id="fStepLabel">Find account</span>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="forgotStep1">
+      <h1 class="panel-title">Reset password</h1>
+      <p class="panel-sub">Enter your username and we'll verify your identity.</p>
+
+      <div class="alert error" id="forgotError1"><i class="fas fa-circle-xmark"></i><span></span></div>
+
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" id="forgotUsername" placeholder="your username" autocomplete="username" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="forgotStep1Next()">
+        <span class="btn-text">Find Account</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="forgotStep2" style="display:none;">
+      <h1 class="panel-title">Verify identity</h1>
+      <p class="panel-sub">Answer your security question to continue.</p>
+
+      <div class="alert error" id="forgotError2"><i class="fas fa-circle-xmark"></i><span></span></div>
+
+      <div class="field">
+        <label>Security Question</label>
+        <div style="padding:13px 14px;background:var(--surface2);border:1.5px solid rgba(255,255,255,0.07);border-radius:var(--radius);font-size:.9rem;color:var(--muted2);" id="forgotSecQuestion"></div>
+      </div>
+
+      <div class="field">
+        <label>Your Answer</label>
+        <div class="input-wrap">
+          <i class="fas fa-key"></i>
+          <input type="text" id="forgotSecAnswer" placeholder="case-insensitive" autocomplete="off" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="forgotStep2Next()">
+        <span class="btn-text">Verify</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="forgotStep3" style="display:none;">
+      <h1 class="panel-title">New password</h1>
+      <p class="panel-sub">Choose a new password for your account.</p>
+
+      <div class="alert error" id="forgotError3"><i class="fas fa-circle-xmark"></i><span></span></div>
+
+      <div class="field">
+        <label>New Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="forgotNewPw" placeholder="min 8 characters" autocomplete="new-password" oninput="checkResetStrength()" />
+          <button class="pw-toggle" type="button" onclick="togglePw('forgotNewPw', this)"><i class="fas fa-eye"></i></button>
+        </div>
+        <div class="strength-bar" id="resetStrBar">
+          <div class="strength-seg" id="rSeg1"></div>
+          <div class="strength-seg" id="rSeg2"></div>
+          <div class="strength-seg" id="rSeg3"></div>
+          <div class="strength-seg" id="rSeg4"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Confirm New Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="forgotConfirmPw" placeholder="repeat password" autocomplete="new-password" />
+          <button class="pw-toggle" type="button" onclick="togglePw('forgotConfirmPw', this)"><i class="fas fa-eye"></i></button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="forgotStep3Submit()">
+        <span class="btn-text">Set New Password</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /auth-card -->
+</div><!-- /right-panel -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── THREE.JS FLOATING CLIPBOARD + PARTICLES ──────────────
+(function() {
+  const canvas = document.getElementById('three-canvas');
+  if (!canvas) return;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  function resize() {
+    const el = canvas.parentElement;
+    renderer.setSize(el.clientWidth, el.clientHeight);
+    camera.aspect = el.clientWidth / el.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.z = 10;
+  const scene = new THREE.Scene();
+
+  // Ambient light
+  scene.add(new THREE.AmbientLight(0x22d3ee, 0.4));
+  const pointLight = new THREE.PointLight(0x22d3ee, 1.5, 30);
+  pointLight.position.set(4, 4, 6);
+  scene.add(pointLight);
+  const pointLight2 = new THREE.PointLight(0xa78bfa, 0.8, 20);
+  pointLight2.position.set(-4, -2, 4);
+  scene.add(pointLight2);
+
+  // Clipboard board
+  const boardMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1124, metalness: 0.2, roughness: 0.8,
+    emissive: 0x22d3ee, emissiveIntensity: 0.05
+  });
+  const boardEdgeMat = new THREE.MeshStandardMaterial({
+    color: 0x22d3ee, metalness: 0.6, roughness: 0.2, emissive: 0x22d3ee, emissiveIntensity: 0.3
+  });
+  const clipGroup = new THREE.Group();
+
+  // Main board
+  const boardGeo = new THREE.BoxGeometry(2.8, 3.8, 0.15);
+  const board = new THREE.Mesh(boardGeo, boardMat);
+  clipGroup.add(board);
+
+  // Board border glow
+  const borderGeo = new THREE.BoxGeometry(2.85, 3.85, 0.1);
+  const borderMesh = new THREE.Mesh(borderGeo, boardEdgeMat);
+  borderMesh.position.z = -0.05;
+  clipGroup.add(borderMesh);
+
+  // Clip at top (cylinder)
+  const clipMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, metalness: 0.8, roughness: 0.2 });
+  const clipGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 32);
+  const clip = new THREE.Mesh(clipGeo, clipMat);
+  clip.position.set(0, 2.1, 0.1);
+  clipGroup.add(clip);
+
+  // Clip hole
+  const holeGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.25, 32);
+  const holeMat = new THREE.MeshStandardMaterial({ color: 0x060912 });
+  const hole = new THREE.Mesh(holeGeo, holeMat);
+  hole.position.set(0, 2.1, 0.2);
+  clipGroup.add(hole);
+
+  // Checklist lines (boxes)
+  const lineMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.5 });
+  const checkMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x4ade80, emissiveIntensity: 0.6 });
+  const mutedLineMat = new THREE.MeshStandardMaterial({ color: 0x1e2d4a });
+
+  const lineData = [
+    { y: 0.9,  checked: true },
+    { y: 0.2,  checked: true },
+    { y: -0.5, checked: true },
+    { y: -1.2, checked: false },
+    { y: -1.9, checked: false },
+  ];
+
+  lineData.forEach(({ y, checked }) => {
+    // Checkbox square
+    const boxGeo = new THREE.BoxGeometry(0.25, 0.25, 0.05);
+    const box = new THREE.Mesh(boxGeo, checked ? checkMat : lineMat);
+    box.position.set(-0.9, y, 0.1);
+    clipGroup.add(box);
+
+    // Check mark (small angled box)
+    if (checked) {
+      const ck = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.06), checkMat);
+      ck.rotation.z = Math.PI / 4;
+      ck.position.set(-0.9, y, 0.15);
+      clipGroup.add(ck);
+    }
+
+    // Text line
+    const tlGeo = new THREE.BoxGeometry(checked ? 1.1 : 0.8, 0.06, 0.04);
+    const tl = new THREE.Mesh(tlGeo, checked ? lineMat : mutedLineMat);
+    tl.position.set(0.1, y, 0.1);
+    clipGroup.add(tl);
+
+    if (checked) {
+      const tl2 = new THREE.BoxGeometry(0.6, 0.06, 0.04);
+      const t2 = new THREE.Mesh(tl2, mutedLineMat);
+      t2.position.set(-0.1, y - 0.18, 0.1);
+      clipGroup.add(t2);
+    }
+  });
+
+  // Title line on clipboard
+  const titleGeo = new THREE.BoxGeometry(1.8, 0.1, 0.04);
+  const titleMesh = new THREE.Mesh(titleGeo, lineMat);
+  titleMesh.position.set(0, 1.5, 0.1);
+  clipGroup.add(titleMesh);
+
+  clipGroup.rotation.y = 0.2;
+  clipGroup.rotation.x = -0.1;
+  scene.add(clipGroup);
+
+  // Floating particles
+  const pCount = 150;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount; i++) {
+    pPos[i*3]   = (Math.random() - 0.5) * 20;
+    pPos[i*3+1] = (Math.random() - 0.5) * 20;
+    pPos[i*3+2] = (Math.random() - 0.5) * 10;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.04, transparent: true, opacity: 0.5 });
+  scene.add(new THREE.Points(pGeo, pMat));
+
+  // Mouse influence
+  let mx = 0, my = 0;
+  document.addEventListener('mousemove', e => {
+    const el = canvas.parentElement;
+    mx = (e.clientX / el.clientWidth - 0.5) * 2;
+    my = (e.clientY / el.clientHeight - 0.5) * 2;
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    clipGroup.rotation.y = 0.2 + Math.sin(t * 0.4) * 0.2 + mx * 0.08;
+    clipGroup.rotation.x = -0.1 + Math.sin(t * 0.3) * 0.05 + my * -0.04;
+    clipGroup.position.y = Math.sin(t * 0.5) * 0.2;
+    pointLight.position.x = Math.sin(t * 0.7) * 4;
+    pointLight.position.y = Math.cos(t * 0.5) * 3;
+    renderer.render(scene, camera);
+  }
+
+  resize();
+  animate();
+  window.addEventListener('resize', resize);
+})();
+</script>
+<script src="auth.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('[SW] Registered'))
+        .catch(err => console.warn('[SW] Failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

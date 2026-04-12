@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Your Role - Attendance System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Nunito:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #060912;
+      --surface:  rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.07);
+      --border:   rgba(34,211,238,0.12);
+      --border2:  rgba(34,211,238,0.28);
+      --accent:   #22d3ee;
+      --accent2:  #a78bfa;
+      --success:  #4ade80;
+      --error:    #f87171;
+      --text:     #f0f4ff;
+      --muted:    #64748b;
+      --muted2:   #94a3b8;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    #role-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Background radial glow */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 50%, rgba(34,211,238,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 50%, rgba(167,139,250,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    /* ── HEADER ── */
+    .role-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 24px rgba(34,211,238,0.35);
+    }
+    .logo-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .welcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent);
+      background: rgba(34,211,238,0.07);
+      border: 1px solid rgba(34,211,238,0.2);
+      padding: 5px 16px;
+      border-radius: 100px;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .role-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+    }
+    .role-header p {
+      font-size: 1rem;
+      color: var(--muted2);
+      line-height: 1.6;
+    }
+
+    /* ── ROLE CARDS ── */
+    .role-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    /* ── MOBILE: horizontal scroll ── */
+    @media (max-width: 768px) {
+      body {
+        padding: 28px 0;
+        align-items: flex-start;
+      }
+
+      .container {
+        width: 100%;
+        padding: 0 20px;
+      }
+
+      .role-header {
+        margin-bottom: 32px;
+        padding: 0 4px;
+      }
+
+      .role-cards {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: visible;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 16px;
+        margin-bottom: 28px;
+        padding: 8px 4px 20px;
+        /* hide scrollbar but keep it functional */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .role-cards::-webkit-scrollbar { display: none; }
+
+      .role-card {
+        flex: 0 0 82vw;
+        max-width: 320px;
+        min-width: 260px;
+        scroll-snap-align: center;
+        padding: 32px 28px;
+      }
+
+      /* Scroll hint dots */
+      .scroll-hint {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .scroll-hint-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        transition: background 0.3s, transform 0.3s;
+      }
+      .scroll-hint-dot.active {
+        background: var(--accent);
+        transform: scale(1.3);
+      }
+
+      /* Swipe label */
+      .swipe-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: -16px;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+      }
+      .swipe-label i { font-size: 0.7rem; animation: swipeAnim 1.6s ease-in-out infinite; }
+      @keyframes swipeAnim {
+        0%, 100% { transform: translateX(0); opacity: 0.5; }
+        50%       { transform: translateX(5px); opacity: 1; }
+      }
+    }
+
+    /* Hide scroll hint on desktop */
+    .scroll-hint, .swipe-label { display: none; }
+
+    .role-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 44px 40px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Gradient border on hover via pseudo-element */
+    .role-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1px;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .role-card.teacher::before { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+    .role-card.student::before  { background: linear-gradient(135deg, var(--accent2), var(--success)); }
+
+    .role-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .role-card.teacher::after { background: radial-gradient(ellipse at top left, rgba(34,211,238,0.07), transparent 60%); }
+    .role-card.student::after  { background: radial-gradient(ellipse at top left, rgba(167,139,250,0.07), transparent 60%); }
+
+    .role-card:hover { transform: translateY(-10px); border-color: transparent; box-shadow: 0 28px 64px rgba(0,0,0,0.45); }
+    .role-card:hover::before { opacity: 1; }
+    .role-card:hover::after  { opacity: 1; }
+    .role-card:hover .role-btn { transform: translateY(-2px); }
+
+    .role-icon {
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .role-card.teacher .role-icon {
+      background: rgba(34,211,238,0.1);
+      border: 1px solid rgba(34,211,238,0.25);
+      color: var(--accent);
+    }
+    .role-card.student .role-icon {
+      background: rgba(167,139,250,0.1);
+      border: 1px solid rgba(167,139,250,0.25);
+      color: var(--accent2);
+    }
+
+    .role-card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      position: relative; z-index: 1;
+    }
+    .role-card p {
+      color: var(--muted2);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      position: relative; z-index: 1;
+    }
+
+    .role-features {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 28px;
+      position: relative; z-index: 1;
+    }
+    .role-features ul { list-style: none; }
+    .role-features li {
+      padding: 7px 0;
+      color: var(--muted2);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .role-features li::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .role-card.student .role-features li::before { background: var(--accent2); }
+    .role-features li:not(:last-child) {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .role-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative; z-index: 1;
+      letter-spacing: 0.2px;
+    }
+    .role-card.teacher .role-btn {
+      background: linear-gradient(135deg, var(--accent), #0ea5e9);
+      color: var(--bg);
+      box-shadow: 0 0 24px rgba(34,211,238,0.25);
+    }
+    .role-card.student .role-btn {
+      background: linear-gradient(135deg, var(--accent2), #7c3aed);
+      color: white;
+      box-shadow: 0 0 24px rgba(167,139,250,0.25);
+    }
+    .role-btn:hover { box-shadow: 0 8px 32px rgba(34,211,238,0.35); }
+
+    /* ── LOGOUT ── */
+    .logout-section {
+      text-align: center;
+      margin-top: 8px;
+    }
+    .logout-link {
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+    .logout-link:hover { color: var(--muted2); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 28px; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      opacity: 0; transition: opacity 0.3s; z-index: 1000;
+      font-size: 0.9rem; white-space: nowrap;
+    }
+    .toast.show    { opacity: 1; }
+    .toast.success { border-color: rgba(74,222,128,0.3); color: #86efac; }
+    .toast.error   { border-color: rgba(248,113,113,0.3); color: #fca5a5; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 2000;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+    .modal-overlay.show { display: flex; animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .modal-box {
+      background: #0d1124;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 44px;
+      max-width: 420px; width: 90%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+      text-align: center;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .modal-box .modal-icon { font-size: 2.8rem; margin-bottom: 16px; }
+    .modal-box h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .modal-box p { color: var(--muted2); margin-bottom: 24px; font-size: 0.9rem; line-height: 1.6; }
+
+    .modal-box .modal-question {
+      background: rgba(34,211,238,0.06);
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px; border-radius: 8px;
+      color: var(--muted2); font-style: italic; font-size: 0.9rem;
+      margin-bottom: 18px; text-align: left;
+    }
+
+    .modal-box input {
+      width: 100%; padding: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      font-size: 1rem; margin-bottom: 14px;
+      text-align: center; outline: none;
+      transition: border-color .2s;
+      font-family: 'Nunito', sans-serif;
+      color: var(--text);
+    }
+    .modal-box input:focus { border-color: var(--accent); background: rgba(34,211,238,0.04); }
+
+    .modal-pin-dots {
+      display: flex; gap: 14px; justify-content: center;
+      background: rgba(255,255,255,0.03);
+      padding: 24px; border-radius: 10px; margin-bottom: 18px;
+    }
+    .modal-pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.15);
+      transition: all .2s;
+    }
+    .modal-pin-dot.filled { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px rgba(34,211,238,0.5); }
+
+    .modal-keypad {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 8px; margin-bottom: 16px;
+    }
+    .modal-key {
+      padding: 13px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      font-size: 1.1em; font-weight: 700; cursor: pointer;
+      transition: all .15s; font-family: 'Outfit', sans-serif; color: var(--text);
+    }
+    .modal-key:hover  { border-color: var(--accent); background: rgba(34,211,238,0.08); }
+    .modal-key:active { background: rgba(34,211,238,0.15); }
+    .modal-key.del, .modal-key.clr { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.15); color: #fca5a5; }
+    .modal-key.del:hover, .modal-key.clr:hover { background: rgba(248,113,113,0.15); }
+
+    .modal-error {
+      color: #fca5a5; font-size: 0.85em; margin-bottom: 12px;
+      display: none; background: rgba(248,113,113,0.08);
+      padding: 10px 14px; border-radius: 8px;
+      border-left: 3px solid var(--error);
+    }
+
+    .modal-lockout {
+      background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 10px; padding: 14px;
+      color: #fca5a5; font-weight: 700; margin-bottom: 14px; display: none;
+      font-size: 0.9rem;
+    }
+    .modal-lockout.show { display: block; }
+
+    .modal-btn-row { display: flex; gap: 10px; }
+    .modal-btn-row .mbtn { flex: 1; }
+
+    .mbtn {
+      padding: 13px; border: none; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      transition: all .2s; font-family: 'Outfit', sans-serif;
+    }
+    .mbtn-primary { background: linear-gradient(135deg, var(--accent), #0ea5e9); color: var(--bg); }
+    .mbtn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(34,211,238,0.3); }
+    .mbtn-secondary { background: rgba(255,255,255,0.06); color: var(--muted2); border: 1px solid rgba(255,255,255,0.08); }
+    .mbtn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+    .modal-error-inline { color: #fca5a5; font-size: 0.85em; margin-top: -10px; margin-bottom: 12px; display: none; }
+    .attempt-warning { font-size: 0.8em; color: var(--muted); margin-bottom: 10px; text-align: center; }
+    .attempt-warning.danger { color: #fca5a5; font-weight: 700; }
+
+    .sid-input { letter-spacing: 3px; text-align: center; font-family: 'Space Mono', monospace !important; }
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#22d3ee">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AttendTrack">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+
+<canvas id="role-canvas"></canvas>
+<div class="bg-glow"></div>
+
+<div class="container">
+  <div class="role-header">
+    <div class="logo-row">
+      <div class="logo-icon"><i class="fas fa-user-check" style="color:var(--bg)"></i></div>
+      <div class="logo-name">AttendTrack</div>
+    </div>
+    <div class="welcome-badge">
+      <i class="fas fa-circle" style="font-size:6px"></i>
+      ROLE SELECTION
+    </div>
+    <h1 id="welcomeHeading">Welcome Back! 👋</h1>
+    <p>Select your role to continue to your dashboard</p>
+  </div>
+
+  <!-- Mobile swipe hint -->
+  <div class="swipe-label">
+    <i class="fas fa-hand-pointer"></i> Swipe to see more
+  </div>
+
+  <div class="role-cards" id="roleCardsContainer">
+    <!-- Teacher -->
+    <div class="role-card teacher" onclick="selectRole('teacher')">
+      <div class="role-icon"><i class="fas fa-chalkboard-user"></i></div>
+      <h2>Teacher</h2>
+      <p>Manage attendance, students, and view comprehensive reports for your classes.</p>
+      <div class="role-features">
+        <ul>
+          <li>Manage students</li>
+          <li>Mark attendance</li>
+          <li>View reports</li>
+          <li>Settings &amp; management</li>
+        </ul>
+      </div>
+      <button class="role-btn">Continue as Teacher</button>
+    </div>
+
+    <!-- Student -->
+    <div class="role-card student" onclick="selectRole('student')">
+      <div class="role-icon"><i class="fas fa-graduation-cap"></i></div>
+      <h2>Student</h2>
+      <p>View your attendance, schedule, and performance analytics at a glance.</p>
+      <div class="role-features">
+        <ul>
+          <li>Weekly attendance</li>
+          <li>Today's classes</li>
+          <li>Performance stats</li>
+          <li>Profile management</li>
+        </ul>
+      </div>
+      <button class="role-btn">Continue as Student</button>
+    </div>
+  </div>
+
+  <!-- Mobile scroll indicator dots -->
+  <div class="scroll-hint" id="scrollDots">
+    <div class="scroll-hint-dot active" data-index="0"></div>
+    <div class="scroll-hint-dot" data-index="1"></div>
+  </div>
+
+  <div class="logout-section">
+    <a href="login.html" class="logout-link" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Sign Out
+    </a>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- STUDENT ID MODAL -->
+<div class="modal-overlay" id="studentIdModal">
+  <div class="modal-box">
+    <div class="modal-icon">🎓</div>
+    <h2>Enter Your Student ID</h2>
+    <p>Please enter your Student ID to continue to the dashboard.</p>
+    <input type="text" id="studentIdInput" class="sid-input"
+           placeholder="e.g. 2513190" maxlength="20" autofocus>
+    <div class="modal-error-inline" id="modalError">Please enter a valid Student ID.</div>
+    <div class="modal-btn-row">
+      <button class="mbtn mbtn-secondary" onclick="closeStudentModal()">Cancel</button>
+      <button class="mbtn mbtn-primary"   onclick="confirmStudentId()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── THREE.JS: GRADUATION CAP + CLIPBOARD ───────────────
+(function() {
+  const canvas = document.getElementById('role-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 14;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+  const l1 = new THREE.PointLight(0x22d3ee, 2, 40); l1.position.set(-6, 4, 8); scene.add(l1);
+  const l2 = new THREE.PointLight(0xa78bfa, 1.5, 30); l2.position.set(6, -4, 6); scene.add(l2);
+
+  // ── GRADUATION CAP (Left side) ──
+  const capGroup = new THREE.Group();
+  capGroup.position.set(-4.5, 0.5, 0);
+
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, metalness: 0.2, roughness: 0.8, emissive: 0x22d3ee, emissiveIntensity: 0.06 });
+  const boardMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, metalness: 0.5, roughness: 0.3, emissive: 0x22d3ee, emissiveIntensity: 0.25 });
+
+  // Top flat square (mortarboard)
+  const topGeo = new THREE.BoxGeometry(2.6, 0.15, 2.6);
+  capGroup.add(new THREE.Mesh(topGeo, boardMat));
+
+  // Brim edge glow
+  const brimEdge = new THREE.BoxGeometry(2.65, 0.05, 2.65);
+  const brimMesh = new THREE.Mesh(brimEdge, new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.5 }));
+  brimMesh.position.y = 0.1;
+  capGroup.add(brimMesh);
+
+  // Cap body (cylinder)
+  const cylGeo = new THREE.CylinderGeometry(0.85, 1.0, 0.85, 32);
+  const cyl = new THREE.Mesh(cylGeo, capMat);
+  cyl.position.y = -0.5;
+  capGroup.add(cyl);
+
+  // Button on top
+  const btnGeo = new THREE.SphereGeometry(0.12, 8, 8);
+  const btn = new THREE.Mesh(btnGeo, boardMat);
+  btn.position.y = 0.17;
+  capGroup.add(btn);
+
+  // Tassel string (a thin cylinder)
+  const tasselGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8);
+  const tasselMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 0.4 });
+  const tassel = new THREE.Mesh(tasselGeo, tasselMat);
+  tassel.position.set(0.9, -0.2, 0);
+  tassel.rotation.z = Math.PI / 8;
+  capGroup.add(tassel);
+
+  // Tassel end
+  const tEndGeo = new THREE.SphereGeometry(0.1, 8, 8);
+  const tEnd = new THREE.Mesh(tEndGeo, tasselMat);
+  tEnd.position.set(1.05, -0.55, 0);
+  capGroup.add(tEnd);
+
+  scene.add(capGroup);
+
+  // ── CLIPBOARD (Right side) ──
+  const clipGroup = new THREE.Group();
+  clipGroup.position.set(4.5, 0, 0);
+
+  const clipMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, metalness: 0.1, roughness: 0.9, emissive: 0xa78bfa, emissiveIntensity: 0.05 });
+  const purpleMat = new THREE.MeshStandardMaterial({ color: 0xa78bfa, metalness: 0.4, roughness: 0.3, emissive: 0xa78bfa, emissiveIntensity: 0.3 });
+  const greenMat  = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x4ade80, emissiveIntensity: 0.5 });
+
+  // Board body
+  clipGroup.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.5, 0.14), clipMat));
+
+  // Border
+  const borderM = new THREE.MeshStandardMaterial({ color: 0xa78bfa, emissive: 0xa78bfa, emissiveIntensity: 0.25, metalness: 0.4, roughness: 0.3 });
+  const borderMesh = new THREE.Mesh(new THREE.BoxGeometry(2.65, 3.55, 0.08), borderM);
+  borderMesh.position.z = -0.05;
+  clipGroup.add(borderMesh);
+
+  // Clip
+  const clipGeo2 = new THREE.CylinderGeometry(0.45, 0.45, 0.18, 32);
+  const clipTop = new THREE.Mesh(clipGeo2, purpleMat);
+  clipTop.position.set(0, 1.95, 0.1);
+  clipGroup.add(clipTop);
+
+  // Check items
+  [0.8, 0.1, -0.6, -1.3].forEach((y, idx) => {
+    const checked = idx < 2;
+    const boxMesh = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.06), checked ? greenMat : purpleMat);
+    boxMesh.position.set(-0.85, y, 0.1);
+    clipGroup.add(boxMesh);
+
+    const lineW = checked ? 1.1 : 0.7;
+    const lm = checked
+      ? new THREE.MeshStandardMaterial({ color: 0xa78bfa, emissive: 0xa78bfa, emissiveIntensity: 0.3 })
+      : new THREE.MeshStandardMaterial({ color: 0x1e2d4a });
+    const lMesh = new THREE.Mesh(new THREE.BoxGeometry(lineW, 0.06, 0.04), lm);
+    lMesh.position.set(0, y, 0.1);
+    clipGroup.add(lMesh);
+  });
+
+  // Title line
+  const titleLine = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.1, 0.04),
+    new THREE.MeshStandardMaterial({ color: 0xa78bfa, emissive: 0xa78bfa, emissiveIntensity: 0.5 }));
+  titleLine.position.set(0, 1.4, 0.1);
+  clipGroup.add(titleLine);
+
+  scene.add(clipGroup);
+
+  // Particle field
+  const pCount = 180;
+  const pGeo = new THREE.BufferGeometry();
+  const pp = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount; i++) {
+    pp[i*3]   = (Math.random()-0.5)*30;
+    pp[i*3+1] = (Math.random()-0.5)*20;
+    pp[i*3+2] = (Math.random()-0.5)*15;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.04, transparent: true, opacity: 0.35 })));
+
+  let mx=0, my=0;
+  document.addEventListener('mousemove', e => {
+    mx = (e.clientX/window.innerWidth - 0.5)*2;
+    my = (e.clientY/window.innerHeight - 0.5)*2;
+  });
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    // Cap floats
+    capGroup.rotation.y = 0.3 + Math.sin(t*0.5)*0.2 + mx*0.06;
+    capGroup.rotation.x = Math.sin(t*0.4)*0.05 + my*-0.04;
+    capGroup.position.y = 0.5 + Math.sin(t*0.6)*0.25;
+
+    // Tassel swings
+    tassel.rotation.z = Math.PI/8 + Math.sin(t*1.2)*0.12;
+    tEnd.position.x = 1.05 + Math.sin(t*1.2)*0.08;
+    tEnd.position.y = -0.55 - Math.abs(Math.sin(t*1.2))*0.06;
+
+    // Clipboard floats opposite phase
+    clipGroup.rotation.y = -0.2 + Math.sin(t*0.45 + 1)*0.15 + mx*0.04;
+    clipGroup.rotation.x = Math.sin(t*0.35 + 0.5)*0.06 + my*-0.03;
+    clipGroup.position.y = Math.sin(t*0.55 + 1)*0.2;
+
+    l1.position.x = Math.sin(t*0.4)*5;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+// ── ROLE LOGIC ─────────────────────────────────────────
+async function selectRole(role) {
+  // BUG-09 FIX: Tell the backend which role this session is for before navigating.
+  // This writes the role into sessions.txt so teacher/student endpoints can enforce it.
+  const session = JSON.parse(localStorage.getItem('attendanceSession') || 'null');
+  const sessionId    = sessionStorage.getItem('sessionId')    || (session && session.sessionId)    || '';
+  const sessionToken = sessionStorage.getItem('sessionToken') || (session && session.sessionToken) || '';
+
+  if (!sessionId || !sessionToken) {
+    showToast('Session missing — please log in again.', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1200);
+    return;
+  }
+
+  try {
+    const res = await fetch('https://attendance-api-production-ec07.up.railway.app/api/authentication/select-role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, sessionToken, role })
+    });
+    if (!res.ok) {
+      showToast('Could not set role — please log in again.', 'error');
+      setTimeout(() => window.location.href = 'login.html', 1200);
+      return;
+    }
+  } catch (e) {
+    showToast('Network error setting role.', 'error');
+    return;
+  }
+
+  sessionStorage.setItem('userRole', role);
+
+  if (role === 'teacher') {
+    showToast('Logging in as teacher…', 'success');
+    setTimeout(() => window.location.href = 'teacher-dashboard.html', 900);
+  } else {
+    document.getElementById('studentIdModal').classList.add('show');
+    setTimeout(() => document.getElementById('studentIdInput').focus(), 100);
+  }
+}
+
+function confirmStudentId() {
+  const input = document.getElementById('studentIdInput');
+  const error = document.getElementById('modalError');
+  const id    = input.value.trim();
+  if (!id || id.length < 3 || !/^[a-zA-Z0-9\-_]+$/.test(id)) {
+    error.textContent = 'Please enter a valid Student ID (3-20 alphanumeric characters).';
+    error.style.display = 'block'; input.focus(); return;
+  }
+  error.style.display = 'none';
+  const username = sessionStorage.getItem('username') ||
+                   JSON.parse(localStorage.getItem('attendanceSession') || '{}').username || id;
+  localStorage.setItem('studentId', username);
+  sessionStorage.setItem('studentId', username);
+  sessionStorage.setItem('studentDisplayId', id);
+  sessionStorage.setItem('userRole', 'student');
+  sessionStorage.setItem('pinAuthenticated', 'true');
+  showToast('Logging in as student…', 'success');
+  setTimeout(() => window.location.href = 'student-dashboard.html', 800);
+}
+
+function closeStudentModal() {
+  document.getElementById('studentIdModal').classList.remove('show');
+  document.getElementById('studentIdInput').value = '';
+  document.getElementById('modalError').style.display = 'none';
+}
+
+function logout() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('attendanceSession') || 'null');
+    if (stored && stored.sessionId) {
+      fetch('https://attendance-api-production-ec07.up.railway.app/api/authentication/logout', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: stored.sessionId })
+      }).catch(() => {});
+    }
+  } catch {}
+  localStorage.removeItem('attendanceSession');
+  sessionStorage.clear();
+}
+
+function showToast(message, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = message;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+window.addEventListener('load', () => {
+  // Only trust sessionStorage (set by auth.js after a validated login or
+  // a server-confirmed session restore). Raw localStorage alone is NOT
+  // enough — a stale session could let unauthenticated users bypass login.
+  const ssOk = sessionStorage.getItem('pinAuthenticated') === 'true'
+            && !!sessionStorage.getItem('sessionId')
+            && !!sessionStorage.getItem('sessionToken');
+
+  if (!ssOk) {
+    // Clear any stale localStorage so auth.js doesn't re-trust it next visit
+    localStorage.removeItem('attendanceSession');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const name = sessionStorage.getItem('fullName') || sessionStorage.getItem('username') || '';
+  if (name) {
+    const h1 = document.getElementById('welcomeHeading');
+    if (h1) h1.textContent = `Welcome, ${name}! 👋`;
+  }
+});
+
+document.addEventListener('keydown', e => {
+  const open = document.getElementById('studentIdModal').classList.contains('show');
+  if (e.key === 'Escape' && open) closeStudentModal();
+  if (e.key === 'Enter'  && open) confirmStudentId();
+});
+
+// ── MOBILE SCROLL DOTS ─────────────────────────────────
+(function() {
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function initMobileScrollUI() {
+    const cards      = document.getElementById('roleCardsContainer');
+    const dots       = document.getElementById('scrollDots');
+    const swipeLabel = document.querySelector('.swipe-label');
+
+    if (!cards) return;
+
+    if (isMobile()) {
+      dots.style.display       = 'flex';
+      swipeLabel.style.display = 'flex';
+
+      // Hide swipe label after first scroll
+      cards.addEventListener('scroll', () => {
+        swipeLabel.style.opacity = '0';
+        swipeLabel.style.transition = 'opacity 0.4s';
+        updateDots();
+      }, { passive: true });
+
+      function updateDots() {
+        const allDots = dots.querySelectorAll('.scroll-hint-dot');
+        const cardEls = cards.querySelectorAll('.role-card');
+        const scrollLeft = cards.scrollLeft;
+        const cardWidth  = cardEls[0] ? cardEls[0].offsetWidth + 16 : cards.offsetWidth;
+        const activeIdx  = Math.round(scrollLeft / cardWidth);
+        allDots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+      }
+    } else {
+      dots.style.display       = 'none';
+      swipeLabel.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('load', initMobileScrollUI);
+  window.addEventListener('resize', initMobileScrollUI);
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('[SW] Registered'))
+        .catch(err => console.warn('[SW] Failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

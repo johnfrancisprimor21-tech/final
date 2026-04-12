@@ -1,0 +1,1 @@
+STU001|Student|johnfrancisprimor1@gmail.com|2513190|Computer Science|1st Year||2026-03-24|true|2026-03-24 12:00:00

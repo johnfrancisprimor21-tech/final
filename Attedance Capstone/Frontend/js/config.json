@@ -1,0 +1,19 @@
+{
+  "api": {
+    "baseURL": "https://attendance-api-production-ec07.up.railway.app/api",
+    "timeout": 5000,
+    "retryAttempts": 3,
+    "environment": "production"
+  },
+  "auth": {
+    "sessionStorageKey": "attendanceSession",
+    "sessionTimeout": 86400000,
+    "pinLength": 4
+  },
+  "features": {
+    "batchAttendance": true,
+    "csvExport": true,
+    "dateRange": true,
+    "statistics": true
+  }
+}

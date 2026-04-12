@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendTrack — Teacher Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Nunito:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="teacher-style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4ade80">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AttendTrack">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+
+<body>
+<noscript>
+  <div style="position:fixed;inset:0;background:#060912;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;color:#f0f4ff;text-align:center;padding:24px;">
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(34,211,238,0.2);border-radius:16px;padding:40px 32px;max-width:400px;">
+      <div style="font-size:2.5rem;margin-bottom:16px;">⚠️</div>
+      <h2 style="font-size:1.3rem;margin-bottom:12px;">JavaScript Required</h2>
+      <p style="color:#94a3b8;line-height:1.6;">AttendTrack requires JavaScript to function. Please enable JavaScript in your browser settings and reload the page.</p>
+      <a href="login.html" style="display:inline-block;margin-top:24px;padding:12px 28px;background:linear-gradient(135deg,#22d3ee,#0ea5e9);color:#060912;border-radius:10px;text-decoration:none;font-weight:700;">← Back to Login</a>
+    </div>
+  </div>
+</noscript>
+<!-- Hamburger + overlay for mobile -->
+<button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Open menu">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-clipboard-list"></i> Attendance</h2>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li onclick="showSection('dashboard')" class="nav-item" tabindex="0">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li onclick="showSection('sectionManagement')" class="nav-item" tabindex="0">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Section Management</span>
+                    </li>
+                    <li onclick="showSection('studentManagement')" class="nav-item" tabindex="0">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Student Management</span>
+                    </li>
+                    <li onclick="showSection('markAttendance')" class="nav-item" tabindex="0">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Mark Attendance</span>
+                    </li>
+                    <li onclick="showSection('summary')" class="nav-item" tabindex="0">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Summary</span>
+                    </li>
+                    <li onclick="showSection('absentByDate')" class="nav-item" tabindex="0">
+                        <i class="fas fa-calendar-times"></i>
+                        <span>Absent by Date</span>
+                    </li>
+                    <li onclick="showSection('editAttendance')" class="nav-item" tabindex="0">
+                        <i class="fas fa-pen-to-square"></i>
+                        <span>Edit Attendance</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- LOGOUT BUTTON -->
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main" style="position:relative;">
+            <canvas id="teacher-academic-bg" class="academic-overlay" style="position:fixed;top:0;left:260px;width:calc(100vw - 260px);height:100vh;pointer-events:none;z-index:0;opacity:0.5;"></canvas>
+            <div class="content-wrapper" style="position:relative;z-index:1;">
+                <!-- DASHBOARD -->
+                <section id="dashboard" class="section active">
+                    <div class="section-header">
+                        <h1><i class="fas fa-home"></i> Dashboard</h1>
+                        <p class="subtitle">Welcome to the Student Attendance System</p>
+                    </div>
+
+                    <!-- SECTION SELECTOR -->
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Current Section:</label>
+                        <select id="dashboardSectionSelect" onchange="switchDashboardSection()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e3f2fd;">
+                                <i class="fas fa-users" style="color: #1976d2;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label">Total Students</p>
+                                <p class="stat-value" id="totalStudents">0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #f3e5f5;">
+                                <i class="fas fa-check" style="color: #7b1fa2;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label" id="labelTotalPresent">Total Present</p>
+                                <p class="stat-value" id="totalPresent">0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #ffebee;">
+                                <i class="fas fa-times" style="color: #c62828;"></i>
+                            </div>
+                            <div class="stat-content">
+                                <p class="stat-label" id="labelTotalAbsent">Total Absent</p>
+                                <p class="stat-value" id="totalAbsent">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RECENT ACTIVITY LOG -->
+                    <div class="activity-log-card">
+                        <div class="activity-log-header">
+                            <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                            <div class="activity-log-actions">
+                                <button class="show-all-log-btn" onclick="showAllHistory()" title="View full history">
+                                    <i class="fas fa-list"></i> Show All
+                                </button>
+                                <button class="clear-log-btn" onclick="clearActivityLog()" title="Clear history">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <ul class="activity-log-list" id="activityLogList">
+                            <li class="activity-log-empty">
+                                <i class="fas fa-clock"></i> No recent activity yet.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- SECTION MANAGEMENT -->
+                <section id="sectionManagement" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-layer-group"></i> Section Management</h1>
+                        <p class="subtitle">Create and manage class sections</p>
+                    </div>
+
+                    <!-- TABS FOR SECTION MANAGEMENT -->
+                    <div class="tabs-container">
+                        <button class="tab-button active" onclick="switchSectionTab('createSectionTab')">
+                            <i class="fas fa-plus"></i> Create Section
+                        </button>
+                        <button class="tab-button" onclick="switchSectionTab('viewSectionTab')">
+                            <i class="fas fa-list"></i> View Sections
+                        </button>
+                        <button class="tab-button" onclick="switchSectionTab('editSectionTab')">
+                            <i class="fas fa-edit"></i> Edit Section
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: CREATE SECTION -->
+                    <div id="createSectionTab" class="tab-content active">
+                        <h2><i class="fas fa-plus"></i> Create New Section</h2>
+                        <form class="form-group" id="createSectionForm" onsubmit="createSection(event)">
+                            <div class="form-field">
+                                <label for="sectionCode"><i class="fas fa-code"></i> Section Code</label>
+                                <input 
+                                    id="sectionCode" 
+                                    type="text"
+                                    placeholder="e.g., SEC-001, SECTION-1" 
+                                    required
+                                    aria-label="Section Code"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="sectionName"><i class="fas fa-heading"></i> Section Name</label>
+                                <input 
+                                    id="sectionName" 
+                                    type="text"
+                                    placeholder="e.g., Class 1A, Block A" 
+                                    required
+                                    aria-label="Section Name"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="sectionDescription"><i class="fas fa-align-left"></i> Description</label>
+                                <textarea 
+                                    id="sectionDescription" 
+                                    placeholder="e.g., Morning session, Block A classroom" 
+                                    rows="3"
+                                    aria-label="Section Description"
+                                ></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Section
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- TAB 2: VIEW SECTIONS -->
+                    <div id="viewSectionTab" class="tab-content">
+                        <h2><i class="fas fa-list"></i> All Sections</h2>
+                        
+                        <div class="action-bar">
+                            <input 
+                                type="text" 
+                                id="searchSection" 
+                                placeholder="Search sections..." 
+                                class="search-input"
+                                onkeyup="filterSections()"
+                            >
+                            <button onclick="loadSectionsList()" class="btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+
+                        <div class="student-stats-mini">
+                            <div class="stat-mini">
+                                <span>Total Sections:</span>
+                                <strong id="totalSections">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-code"></i> Code</th>
+                                        <th><i class="fas fa-heading"></i> Name</th>
+                                        <th><i class="fas fa-users"></i> Students</th>
+                                        <th><i class="fas fa-cog"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sectionTableBody">
+                                    <tr class="empty-row">
+                                        <td colspan="4" style="text-align: center; padding: 40px;">
+                                            <i class="fas fa-inbox"></i> Click Refresh to load sections
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: EDIT SECTION -->
+                    <div id="editSectionTab" class="tab-content">
+                        <h2><i class="fas fa-edit"></i> Edit Section</h2>
+                        
+                        <div class="form-group">
+                            <div class="form-field">
+                                <label for="selectSectionToEdit"><i class="fas fa-search"></i> Select Section</label>
+                                <select id="selectSectionToEdit" onchange="loadSectionToEdit()" aria-label="Select Section">
+                                    <option value="">-- Select a Section --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form class="form-group" id="editSectionForm" style="display: none;" onsubmit="updateSection(event)">
+                            <div class="form-field">
+                                <label><i class="fas fa-code"></i> Section Code (Cannot Change)</label>
+                                <input 
+                                    id="editSectionCode" 
+                                    type="text"
+                                    disabled
+                                    aria-label="Edit Section Code"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="editSectionName"><i class="fas fa-heading"></i> Section Name</label>
+                                <input 
+                                    id="editSectionName" 
+                                    type="text"
+                                    placeholder="Enter section name" 
+                                    required
+                                    aria-label="Edit Section Name"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="editSectionDescription"><i class="fas fa-align-left"></i> Description</label>
+                                <textarea 
+                                    id="editSectionDescription" 
+                                    placeholder="Enter description" 
+                                    rows="3"
+                                    aria-label="Edit Section Description"
+                                ></textarea>
+                            </div>
+
+                            <div class="button-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="deleteSection()">
+                                    <i class="fas fa-trash"></i> Delete Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- STUDENT MANAGEMENT -->
+                <section id="studentManagement" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-users-cog"></i> Student Management</h1>
+                        <p class="subtitle">Manage students for selected section</p>
+                    </div>
+
+                    <!-- SECTION SELECTOR -->
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Select Section:</label>
+                        <select id="studentSectionSelect" onchange="switchStudentSection()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <!-- TABS FOR STUDENT MANAGEMENT -->
+                    <div class="tabs-container" id="studentTabsContainer" style="display: none;">
+                        <button class="tab-button active" onclick="switchStudentTab('addStudentTab')">
+                            <i class="fas fa-user-plus"></i> Add Student
+                        </button>
+                        <button class="tab-button" onclick="switchStudentTab('viewStudentTab')">
+                            <i class="fas fa-list"></i> View Students
+                        </button>
+                        <button class="tab-button" onclick="switchStudentTab('editStudentTab')">
+                            <i class="fas fa-edit"></i> Edit Student
+                        </button>
+                        <button class="tab-button" onclick="switchStudentTab('studentStatsTab')">
+                            <i class="fas fa-chart-pie"></i> Stats
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: ADD STUDENT -->
+                    <div id="addStudentTab" class="tab-content active">
+                        <h2><i class="fas fa-user-plus"></i> Add New Student</h2>
+                        <form class="form-group" id="addStudentFormMgmt" onsubmit="addStudentMgmt(event)">
+                            <div class="form-field">
+                                <label for="studentIdMgmt"><i class="fas fa-id-card"></i> Student ID</label>
+                                <input 
+                                    id="studentIdMgmt" 
+                                    type="text"
+                                    placeholder="e.g., S001" 
+                                    required
+                                    aria-label="Student ID"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="studentNameMgmt"><i class="fas fa-user"></i> Full Name</label>
+                                <input 
+                                    id="studentNameMgmt" 
+                                    type="text"
+                                    placeholder="e.g., John Francis C. Primor" 
+                                    required
+                                    aria-label="Student Name"
+                                >
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Student to Section
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- TAB 2: VIEW STUDENTS -->
+                    <div id="viewStudentTab" class="tab-content">
+                        <h2><i class="fas fa-list"></i> Students in Section</h2>
+                        
+                        <div class="action-bar">
+                            <input 
+                                type="text" 
+                                id="searchStudentMgmt" 
+                                placeholder="Search by ID or Name..." 
+                                class="search-input"
+                                onkeyup="filterStudentsMgmt()"
+                            >
+                            <button onclick="loadStudentsMgmt()" class="btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button onclick="exportStudentsCSV()" class="btn btn-secondary">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+
+                        <div class="student-stats-mini">
+                            <div class="stat-mini">
+                                <span>Total Students:</span>
+                                <strong id="totalStudentsMgmt">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-id-card"></i> ID</th>
+                                        <th><i class="fas fa-user"></i> Name</th>
+                                        <th><i class="fas fa-check-circle"></i> Present</th>
+                                        <th><i class="fas fa-times-circle"></i> Absent</th>
+                                        <th><i class="fas fa-cog"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableMgmt">
+                                    <tr class="empty-row">
+                                        <td colspan="5" style="text-align: center; padding: 40px;">
+                                            <i class="fas fa-inbox"></i> No students in this section
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: EDIT STUDENT -->
+                    <div id="editStudentTab" class="tab-content">
+                        <h2><i class="fas fa-edit"></i> Edit Student</h2>
+                        
+                        <div class="form-group">
+                            <div class="form-field">
+                                <label for="selectStudentToEdit"><i class="fas fa-search"></i> Select Student</label>
+                                <select id="selectStudentToEdit" onchange="loadStudentToEdit()" aria-label="Select Student">
+                                    <option value="">-- Select Student --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form class="form-group" id="editStudentForm" style="display: none;" onsubmit="updateStudent(event)">
+                            <div class="form-field">
+                                <label><i class="fas fa-id-card"></i> Student ID</label>
+                                <input 
+                                    id="editStudentId" 
+                                    type="text"
+                                    disabled
+                                    aria-label="Edit Student ID"
+                                >
+                            </div>
+
+                            <div class="form-field">
+                                <label for="editStudentName"><i class="fas fa-user"></i> Full Name</label>
+                                <input 
+                                    id="editStudentName" 
+                                    type="text"
+                                    required
+                                    aria-label="Edit Student Name"
+                                >
+                            </div>
+
+                            <div class="button-group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="deleteStudentFromEdit()">
+                                    <i class="fas fa-trash"></i> Remove from Section
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- TAB 4: STUDENT STATS -->
+                    <div id="studentStatsTab" class="tab-content">
+                        <h2><i class="fas fa-chart-pie"></i> Student Attendance Stats</h2>
+
+                        <div class="form-group" style="max-width: 300px;">
+                            <div class="form-field">
+                                <label for="selectStudentForStats"><i class="fas fa-user-check"></i> Select Student</label>
+                                <select id="selectStudentForStats" onchange="loadStudentStats()" aria-label="Select Student for Stats">
+                                    <option value="">-- Select Student --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="studentStatsContainer" style="display: none;">
+                            <div class="stats-cards">
+                                <div class="stat-summary-card present">
+                                    <div class="stat-summary-icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="stat-summary-content">
+                                        <p>Present Days</p>
+                                        <h2 id="studentPresentCount">0</h2>
+                                    </div>
+                                </div>
+
+                                <div class="stat-summary-card absent">
+                                    <div class="stat-summary-icon">
+                                        <i class="fas fa-times"></i>
+                                    </div>
+                                    <div class="stat-summary-content">
+                                        <p>Absent Days</p>
+                                        <h2 id="studentAbsentCount">0</h2>
+                                    </div>
+                                </div>
+
+                                <div class="stat-summary-card rate">
+                                    <div class="stat-summary-icon">
+                                        <i class="fas fa-percentage"></i>
+                                    </div>
+                                    <div class="stat-summary-content">
+                                        <p>Attendance %</p>
+                                        <h2 id="studentAttendancePercentage">0%</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MARK ATTENDANCE -->
+                <section id="markAttendance" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-check-circle"></i> Mark Attendance</h1>
+                        <p class="subtitle">Record student attendance</p>
+                    </div>
+
+                    <!-- SECTION SELECTOR -->
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Select Section:</label>
+                        <select id="attendanceSectionSelect" onchange="switchAttendanceSection()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <!-- MODE TOGGLE -->
+                    <div id="attendanceModeToggle" style="display:none; margin: 18px 0 10px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button id="modeBulkBtn" onclick="switchAttendanceMode('bulk')" class="btn btn-primary" style="flex:1; min-width:140px;">
+                                <i class="fas fa-users"></i> Bulk (All Present)
+                            </button>
+                            <button id="modeSingleBtn" onclick="switchAttendanceMode('single')" class="btn btn-secondary" style="flex:1; min-width:140px;">
+                                <i class="fas fa-user"></i> Single Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ===== BULK MODE ===== -->
+                    <div id="bulkAttendancePanel" style="display:none;">
+                        <div class="form-group" style="margin-top:10px;">
+                            <div class="form-field">
+                                <label for="bulkAttendanceDate"><i class="fas fa-calendar"></i> Date</label>
+                                <input id="bulkAttendanceDate" type="date" aria-label="Bulk Attendance Date">
+                            </div>
+
+                            <p style="color:#a0a0a0; font-size:0.9em; margin:8px 0 4px;">
+                                <i class="fas fa-info-circle"></i>
+                                All students are <strong style="color:#4ade80;">Present</strong> by default.
+                                Check the box next to anyone who is <strong style="color:#ef4444;">Absent</strong> or <strong style="color:#f59e0b;">Late</strong>.
+                            </p>
+
+                            <!-- Student checklist -->
+                            <div id="bulkStudentList" style="margin:12px 0; display:flex; flex-direction:column; gap:8px;"></div>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;">
+                                <button onclick="markAllPresent()" class="btn btn-secondary" style="flex:1;">
+                                    <i class="fas fa-check-double"></i> Reset All to Present
+                                </button>
+                                <button onclick="submitBulkAttendance()" class="btn btn-primary" style="flex:1;">
+                                    <i class="fas fa-paper-plane"></i> Submit All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== SINGLE MODE ===== -->
+                    <form class="form-group" id="markAttendanceForm" style="display: none;" onsubmit="markAttendance(event)">
+                        <div class="form-field">
+                            <label for="studentNameDropdown"><i class="fas fa-user-check"></i> Select Student</label>
+                            <select 
+                                id="studentNameDropdown" 
+                                onchange="onStudentNameSelected()"
+                                aria-label="Select Student by Name"
+                            >
+                                <option value="">-- Select Student --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-divider">
+                            <span>OR</span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="attendanceId"><i class="fas fa-id-card"></i> Enter Student ID Manually</label>
+                            <input 
+                                id="attendanceId" 
+                                type="text"
+                                placeholder="Enter student ID" 
+                                aria-label="Attendance Student ID"
+                            >
+                        </div>
+
+                        <div class="form-field">
+                            <label for="status"><i class="fas fa-list-check"></i> Status</label>
+                            <select id="status" required aria-label="Attendance Status">
+                                <option value="">-- Select Status --</option>
+                                <option value="Present">✓ Present</option>
+                                <option value="Absent">✗ Absent</option>
+                                <option value="Late">⏰ Late</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="attendanceDate"><i class="fas fa-calendar"></i> Date</label>
+                            <input 
+                                id="attendanceDate" 
+                                type="date"
+                                aria-label="Attendance Date"
+                            >
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Submit Attendance
+                        </button>
+                    </form>
+                </section>
+
+                <!-- ATTENDANCE SUMMARY -->
+                <section id="summary" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-chart-bar"></i> Attendance Summary</h1>
+                        <p class="subtitle">View attendance statistics</p>
+                    </div>
+
+                    <!-- SECTION SELECTOR -->
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Select Section:</label>
+                        <select id="summarySectionSelect" onchange="switchSummarySection()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <div class="summary-container">
+                        <div class="summary-card">
+                            <h3><i class="fas fa-globe"></i> All Records</h3>
+                            <button onclick="loadSummary()" class="btn btn-secondary">
+                                Load All Records
+                            </button>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3><i class="fas fa-calendar"></i> By Date</h3>
+                            <div class="form-field">
+                                <input type="date" id="summaryDate" aria-label="Summary Date">
+                            </div>
+                            <button onclick="loadSummaryByDate()" class="btn btn-secondary">
+                                Load by Date
+                            </button>
+                        </div>
+
+                        <div class="summary-card">
+                            <h3><i class="fas fa-user"></i> By Student</h3>
+                            <div class="form-field">
+                                <input id="summaryStudentId" type="text" placeholder="Enter Student ID" aria-label="Summary Student ID">
+                            </div>
+                            <button onclick="loadStudentSummary()" class="btn btn-secondary">
+                                Load Student Summary
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-cards">
+                        <div class="stat-summary-card present">
+                            <div class="stat-summary-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="stat-summary-content">
+                                <p>Present</p>
+                                <h2 id="presentCount">0</h2>
+                            </div>
+                        </div>
+
+                        <div class="stat-summary-card absent">
+                            <div class="stat-summary-icon">
+                                <i class="fas fa-times"></i>
+                            </div>
+                            <div class="stat-summary-content">
+                                <p>Absent</p>
+                                <h2 id="absentCount">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ABSENT BY DATE -->
+                <section id="absentByDate" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-calendar-times"></i> Absent by Date</h1>
+                        <p class="subtitle">View absent students</p>
+                    </div>
+
+                    <!-- SECTION SELECTOR -->
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Select Section:</label>
+                        <select id="absentSectionSelect" onchange="switchAbsentSection()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <form class="form-group" id="absentByDateForm" style="display: none;" onsubmit="loadAbsentByDate(event)">
+                        <div class="form-field">
+                            <label for="absentDate"><i class="fas fa-calendar"></i> Select Date</label>
+                            <input 
+                                id="absentDate" 
+                                type="date" 
+                                required
+                                aria-label="Absent Date"
+                            >
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> View Absent Students
+                        </button>
+                    </form>
+
+                    <div class="stats-info" id="absentStatsInfo" style="display: none;">
+                        <p>Total Absent on Selected Date: <strong id="absentDateCount">0</strong></p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-id-card"></i> Student ID</th>
+                                    <th><i class="fas fa-user"></i> Student Name</th>
+                                    <th><i class="fas fa-calendar"></i> Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="absentTable">
+                                <tr class="empty-row">
+                                    <td colspan="3" style="text-align: center; padding: 40px;">
+                                        <i class="fas fa-inbox"></i> Select a section and date
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- EDIT ATTENDANCE -->
+                <section id="editAttendance" class="section">
+                    <div class="section-header">
+                        <h1><i class="fas fa-pen-to-square"></i> Edit Attendance</h1>
+                        <p class="subtitle">Correct mistakes — change a student's status for any date</p>
+                    </div>
+
+                    <div class="section-selector">
+                        <label><i class="fas fa-layer-group"></i> Select Section:</label>
+                        <select id="editAttSectionSelect" onchange="loadEditAttendanceRecords()" class="section-select">
+                            <option value="">-- Select Section --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top:14px;">
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                            <div class="form-field" style="flex:1; min-width:160px; margin-bottom:0;">
+                                <label><i class="fas fa-calendar"></i> Filter by Date</label>
+                                <input type="date" id="editAttDateFilter" onchange="loadEditAttendanceRecords()">
+                            </div>
+                            <div class="form-field" style="flex:1; min-width:160px; margin-bottom:0;">
+                                <label><i class="fas fa-search"></i> Filter by Student</label>
+                                <input type="text" id="editAttStudentFilter" placeholder="Name or ID..." oninput="filterEditRecords()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="editAttRecordsContainer" style="margin-top:18px;">
+                        <p style="color:#a0a0a0; text-align:center; padding:30px;">
+                            <i class="fas fa-arrow-up"></i> Select a section to view attendance records
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
+
+    <!-- SIDE NOTIFICATION STACK (duplicate warnings) -->
+    <div id="sideNotifStack"></div>
+
+    <script src="inactivity.js"></script>
+    <script src="teacher-script.js"></script>
+    <script>
+    // ── SIDEBAR MOBILE TOGGLE ──
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn     = document.getElementById('hamburgerBtn');
+        const isOpen  = sidebar.classList.toggle('open');
+        overlay.classList.toggle('active', isOpen);
+        btn.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    function closeSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn     = document.getElementById('hamburgerBtn');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-bars"></i>';
+        document.body.style.overflow = '';
+    }
+    // Close sidebar on nav item click (mobile)
+    document.querySelectorAll('.sidebar-nav a, .nav-item').forEach(el => {
+        el.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+    // Close on Escape key
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+    </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(() => console.log('[SW] Registered'))
+            .catch(err => console.warn('[SW] Failed:', err));
+        });
+      }
+    </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── TEACHER SIDEBAR 3D ANIMATION ──────────────────────────
+(function() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `
+    position: absolute;
+    bottom: 70px; left: 0;
+    width: 260px; height: 200px;
+    pointer-events: none;
+    opacity: 1;
+    z-index: 0;
+  `;
+  sidebar.style.position = 'relative';
+  sidebar.appendChild(canvas);
+
+  const W = 260, H = 200;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+  camera.position.z = 7;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x22d3ee, 0.6));
+  const pl1 = new THREE.PointLight(0x22d3ee, 3.5, 20);
+  pl1.position.set(3, 3, 5); scene.add(pl1);
+  const pl2 = new THREE.PointLight(0xa78bfa, 2, 15);
+  pl2.position.set(-3, -2, 3); scene.add(pl2);
+
+  // Clipboard board (teacher theme)
+  const clipGroup = new THREE.Group();
+
+  const boardMat = new THREE.MeshStandardMaterial({
+    color: 0x0d1124, metalness: 0.2, roughness: 0.8,
+    emissive: 0x22d3ee, emissiveIntensity: 0.04
+  });
+  const borderMat = new THREE.MeshStandardMaterial({
+    color: 0x22d3ee, metalness: 0.6, roughness: 0.2,
+    emissive: 0x22d3ee, emissiveIntensity: 0.35
+  });
+
+  // Main board
+  clipGroup.add(Object.assign(new THREE.Mesh(new THREE.BoxGeometry(2.4, 3.2, 0.12), boardMat)));
+  // Border glow
+  const border = new THREE.Mesh(new THREE.BoxGeometry(2.46, 3.26, 0.08), borderMat);
+  border.position.z = -0.05; clipGroup.add(border);
+
+  // Clip top
+  const clipMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, metalness: 0.85, roughness: 0.15 });
+  const clip = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.18, 32), clipMat);
+  clip.position.set(0, 1.78, 0.08); clipGroup.add(clip);
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.22, 32),
+    new THREE.MeshStandardMaterial({ color: 0x060912 }));
+  hole.position.set(0, 1.78, 0.16); clipGroup.add(hole);
+
+  // Checklist lines
+  const lineMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.55 });
+  const checkMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x4ade80, emissiveIntensity: 0.7 });
+  const mutedMat = new THREE.MeshStandardMaterial({ color: 0x1e2d4a });
+  const rows = [{y:0.75,c:true},{y:0.15,c:true},{y:-0.45,c:true},{y:-1.05,c:false},{y:-1.6,c:false}];
+  rows.forEach(({y, c}) => {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.04), c ? checkMat : lineMat);
+    box.position.set(-0.75, y, 0.08); clipGroup.add(box);
+    const line = new THREE.Mesh(new THREE.BoxGeometry(c ? 0.95 : 0.7, 0.05, 0.03), c ? lineMat : mutedMat);
+    line.position.set(0.1, y, 0.08); clipGroup.add(line);
+    if (c) {
+      const l2 = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.05, 0.03), mutedMat);
+      l2.position.set(-0.05, y - 0.15, 0.08); clipGroup.add(l2);
+    }
+  });
+  const title = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 0.03), lineMat);
+  title.position.set(0, 1.3, 0.08); clipGroup.add(title);
+
+  clipGroup.rotation.y = 0.2; clipGroup.rotation.x = -0.1;
+  scene.add(clipGroup);
+
+  // Particles
+  const pGeo = new THREE.BufferGeometry();
+  const pArr = new Float32Array(120 * 3);
+  for (let i = 0; i < 120; i++) {
+    pArr[i*3]=(Math.random()-0.5)*14; pArr[i*3+1]=(Math.random()-0.5)*10; pArr[i*3+2]=(Math.random()-0.5)*8;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pArr, 3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.045, transparent: true, opacity: 0.55 })));
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    clipGroup.rotation.y = 0.2 + Math.sin(t * 0.4) * 0.22;
+    clipGroup.rotation.x = -0.1 + Math.sin(t * 0.3) * 0.06;
+    clipGroup.position.y = Math.sin(t * 0.5) * 0.18;
+    pl1.position.x = Math.sin(t * 0.7) * 3.5;
+    pl1.position.y = Math.cos(t * 0.5) * 2.5;
+    pl1.intensity = 3 + Math.sin(t * 0.9) * 0.8;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+// ── TEACHER ACADEMIC BACKGROUND OVERLAY ──────────────────
+(function() {
+  const canvas = document.getElementById('teacher-academic-bg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth  * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const W = () => canvas.offsetWidth;
+  const H = () => canvas.offsetHeight;
+
+  const symbols = [
+    '🎓','📚','📐','📏','✏️','🔬','📝','🧮','📊','📖',
+    '🏫','💡','⚗️','🧪','✔️','📋','🖊️',
+    '∑','∫','π','∞','√','Δ','θ','λ',
+    'A+','GPA','f(x)','y=mx','100%','SEC-A'
+  ];
+
+  const COUNT = 32;
+  const particles = Array.from({length: COUNT}, () => ({
+    x: Math.random() * 1400,
+    y: Math.random() * 900,
+    sym: symbols[Math.floor(Math.random() * symbols.length)],
+    size: 11 + Math.random() * 18,
+    speed: 0.12 + Math.random() * 0.28,
+    drift: (Math.random() - 0.5) * 0.18,
+    opacity: 0.06 + Math.random() * 0.11,
+    rotation: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.005,
+    phase: Math.random() * Math.PI * 2,
+  }));
+
+  function drawGrid() {
+    ctx.save();
+    ctx.fillStyle = '#22d3ee';
+    ctx.globalAlpha = 0.04;
+    const sp = 40;
+    for (let x = sp/2; x < W(); x += sp)
+      for (let y = sp/2; y < H(); y += sp) {
+        ctx.beginPath(); ctx.arc(x, y, 1.1, 0, Math.PI*2); ctx.fill();
+      }
+    ctx.restore();
+  }
+
+  function drawLines() {
+    ctx.save();
+    ctx.strokeStyle = '#22d3ee';
+    ctx.globalAlpha = 0.022;
+    ctx.lineWidth = 1;
+    const gap = 58;
+    for (let i = -H(); i < W()+H(); i += gap) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H(), H()); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCornerText() {
+    const labels = [
+      { text: 'Attendance = P / T', x: 0.75, y: 0.07 },
+      { text: 'Section GPA = ΣGP / Cr', x: 0.03, y: 0.94 },
+      { text: 'Rate = Present / Total × 100', x: 0.45, y: 0.97 },
+    ];
+    ctx.save();
+    ctx.font = '500 10.5px "Space Mono", monospace';
+    ctx.fillStyle = '#22d3ee';
+    ctx.globalAlpha = 0.1;
+    labels.forEach(l => ctx.fillText(l.text, W() * l.x, H() * l.y));
+    ctx.restore();
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W(), H());
+    frame++;
+    drawGrid();
+    drawLines();
+    drawCornerText();
+    particles.forEach(p => {
+      p.y -= p.speed;
+      p.x += p.drift + Math.sin(frame * 0.01 + p.phase) * 0.14;
+      p.rotation += p.rotSpeed;
+      if (p.y < -40) { p.y = H() + 20; p.x = Math.random() * W(); }
+      if (p.x < -40) p.x = W() + 20;
+      if (p.x > W() + 40) p.x = -20;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.globalAlpha = p.opacity + Math.sin(frame * 0.02 + p.phase) * 0.025;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const isText = p.sym.length <= 5 && p.sym.charCodeAt(0) < 256;
+      if (isText) {
+        ctx.fillStyle = '#22d3ee';
+        ctx.font = `bold ${p.size}px "Space Mono", monospace`;
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${p.size}px serif`;
+      }
+      ctx.fillText(p.sym, 0, 0);
+      ctx.restore();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+<!-- FULL HISTORY MODAL -->
+<div id="historyModal" class="history-modal-overlay" onclick="closeHistoryModal(event)">
+    <div class="history-modal">
+        <div class="history-modal-header">
+            <h2><i class="fas fa-history"></i> Full Activity History</h2>
+            <button class="history-modal-close" onclick="document.getElementById('historyModal').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="history-modal-body">
+            <ul class="history-modal-list" id="historyModalList"></ul>
+        </div>
+        <div class="history-modal-footer">
+            <button class="clear-log-btn" onclick="clearAllHistory()">
+                <i class="fas fa-trash-alt"></i> Clear All History
+            </button>
+        </div>
+    </div>
+</div>
+<!-- DELETE HISTORY PASSWORD MODAL -->
+<div id="deletePasswordModal" class="history-modal-overlay" data-scope="all">
+    <div class="history-modal pwd-modal">
+        <div class="history-modal-header">
+            <h2><i class="fas fa-lock"></i> Confirm Delete</h2>
+            <button class="history-modal-close" onclick="closeDeletePasswordModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="pwd-modal-body">
+            <p class="pwd-modal-desc">Enter your password to delete history.</p>
+            <div class="pwd-input-wrap">
+                <i class="fas fa-key pwd-icon"></i>
+                <input
+                    type="password"
+                    id="deletePasswordInput"
+                    class="pwd-input"
+                    placeholder="Enter password"
+                    onkeydown="if(event.key==='Enter') confirmDeleteWithPassword()"
+                />
+                <button class="pwd-toggle-btn" onclick="togglePwdVisibility()" tabindex="-1">
+                    <i class="fas fa-eye" id="pwdToggleIcon"></i>
+                </button>
+            </div>
+            <div class="pwd-error" id="deletePasswordError" style="display:none;">
+                <i class="fas fa-exclamation-circle"></i> Incorrect password. Try again.
+            </div>
+        </div>
+        <div class="history-modal-footer" style="gap:0.5rem; justify-content:flex-end;">
+            <button class="pwd-cancel-btn" onclick="closeDeletePasswordModal()">Cancel</button>
+            <button class="pwd-confirm-btn" onclick="confirmDeleteWithPassword()">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

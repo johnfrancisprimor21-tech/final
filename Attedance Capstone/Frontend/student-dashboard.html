@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendTrack — Student Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Nunito:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="student-dashboard.css">
+    <style>
+        /* Accent color CSS variable support for dynamic swatches */
+        .accent-swatch { transition: transform 0.2s, box-shadow 0.2s; }
+        .accent-swatch.selected { transform: scale(1.2); box-shadow: 0 0 0 3px white; }
+
+        /* ── Toast Notification ── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            background: #1e3a2f;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            z-index: 99999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            max-width: 90vw;
+            text-align: center;
+            pointer-events: none;
+            animation: toastIn 0.3s ease, toastOut 0.4s ease 2.6s forwards;
+        }
+        .toast.error {
+            background: #3a1e1e;
+            color: #f87171;
+            border-color: #f87171;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(-50%) translateY(0); }
+            to   { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        }
+        @media (max-width: 768px) {
+            .toast {
+                bottom: 80px; /* above mobile bottom bar */
+                font-size: 13px;
+                padding: 12px 20px;
+            }
+        }
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4ade80">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AttendTrack">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+<noscript>
+  <div style="position:fixed;inset:0;background:#060912;display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;color:#f0f4ff;text-align:center;padding:24px;">
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(34,211,238,0.2);border-radius:16px;padding:40px 32px;max-width:400px;">
+      <div style="font-size:2.5rem;margin-bottom:16px;">⚠️</div>
+      <h2 style="font-size:1.3rem;margin-bottom:12px;">JavaScript Required</h2>
+      <p style="color:#94a3b8;line-height:1.6;">AttendTrack requires JavaScript to function. Please enable JavaScript in your browser settings and reload the page.</p>
+      <a href="login.html" style="display:inline-block;margin-top:24px;padding:12px 28px;background:linear-gradient(135deg,#22d3ee,#0ea5e9);color:#060912;border-radius:10px;text-decoration:none;font-weight:700;">← Back to Login</a>
+    </div>
+  </div>
+</noscript>
+<!-- Hamburger + overlay for mobile -->
+<button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Open menu">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-graduation-cap"></i>
+                <span>My Attendance</span>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="dashboard" onclick="switchSection('dashboard', event); return false;">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="checkin" onclick="switchSection('checkin', event); return false;">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Check In</span>
+                </a>
+                <a href="#" class="nav-item" data-section="records" onclick="switchSection('records', event); return false;">
+                    <i class="fas fa-list"></i>
+                    <span>Records</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reports" onclick="switchSection('reports', event); return false;">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#" class="nav-item" data-section="my-classes" onclick="switchSection('my-classes', event); return false;">
+                    <i class="fas fa-book"></i>
+                    <span>My Classes</span>
+                </a>
+                <a href="#" class="nav-item" data-section="profile" onclick="switchSection('profile', event); return false;">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+                <a href="#" class="nav-item" data-section="settings" onclick="switchSection('settings', event); return false;">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="logout(); return false;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Academic background overlay canvas -->
+            <canvas id="academic-bg" class="academic-overlay"></canvas>
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="header">
+                    <h1>Welcome back, <span id="studentName">Student</span>! 👋</h1>
+                    <p>Here's your attendance overview for this semester.</p>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-chart-pie"></i>
+                            Attendance Rate
+                        </h3>
+                        <div class="stat">
+                            <label>Current Rate</label>
+                            <span class="stat-value" id="attendanceRate">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="rateBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-check-circle"></i>
+                            Classes Attended
+                        </h3>
+                        <div class="stat">
+                            <label>Present Days</label>
+                            <span class="stat-value" id="presentDays">0</span>
+                        </div>
+                        <div class="stat">
+                            <label>This Semester</label>
+                            <span class="stat-value" id="presentPercent">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-times-circle"></i>
+                            Classes Missed
+                        </h3>
+                        <div class="stat">
+                            <label>Absent Days</label>
+                            <span class="stat-value" id="absentDays">0</span>
+                        </div>
+                        <div class="stat">
+                            <label>This Semester</label>
+                            <span class="stat-value" id="absentPercent">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-fire"></i>
+                            Streak
+                        </h3>
+                        <div class="stat">
+                            <label>Current Streak</label>
+                            <span class="stat-value" id="streak">0</span>
+                        </div>
+                        <div class="stat">
+                            <label>Days</label>
+                            <span class="stat-value" id="streakDays">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECENT ACTIVITY LOG -->
+                <div class="activity-log-card">
+                    <div class="activity-log-header">
+                        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                        <div class="activity-log-actions">
+                            <button class="show-all-log-btn" onclick="showAllHistory()" title="View full history">
+                                <i class="fas fa-list"></i> Show All
+                            </button>
+                            <button class="clear-log-btn" onclick="clearActivityLog()" title="Clear history">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <ul class="activity-log-list" id="activityLogList">
+                        <li class="activity-log-empty">
+                            <i class="fas fa-clock"></i> No recent activity yet.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- FULL HISTORY MODAL -->
+            <div id="historyModal" class="history-modal-overlay" onclick="closeHistoryModal(event)">
+                <div class="history-modal">
+                    <div class="history-modal-header">
+                        <h2><i class="fas fa-history"></i> Full Activity History</h2>
+                        <button class="history-modal-close" onclick="document.getElementById('historyModal').classList.remove('active')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="history-modal-body">
+                        <ul class="history-modal-list" id="historyModalList"></ul>
+                    </div>
+                    <div class="history-modal-footer">
+                        <button class="clear-log-btn" onclick="clearAllHistory()">
+                            <i class="fas fa-trash-alt"></i> Clear All History
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DELETE HISTORY PASSWORD MODAL -->
+            <div id="deletePasswordModal" class="history-modal-overlay" data-scope="all">
+                <div class="history-modal pwd-modal">
+                    <div class="history-modal-header">
+                        <h2><i class="fas fa-lock"></i> Confirm Delete</h2>
+                        <button class="history-modal-close" onclick="closeDeletePasswordModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="pwd-modal-body">
+                        <p class="pwd-modal-desc">Enter your password to delete history.</p>
+                        <div class="pwd-input-wrap">
+                            <i class="fas fa-key pwd-icon"></i>
+                            <input
+                                type="password"
+                                id="deletePasswordInput"
+                                class="pwd-input"
+                                placeholder="Enter password"
+                                onkeydown="if(event.key==='Enter') confirmDeleteWithPassword()"
+                            />
+                            <button class="pwd-toggle-btn" onclick="togglePwdVisibility()" tabindex="-1">
+                                <i class="fas fa-eye" id="pwdToggleIcon"></i>
+                            </button>
+                        </div>
+                        <div class="pwd-error" id="deletePasswordError" style="display:none;">
+                            <i class="fas fa-exclamation-circle"></i> Incorrect password. Try again.
+                        </div>
+                    </div>
+                    <div class="history-modal-footer" style="gap:0.5rem; justify-content:flex-end;">
+                        <button class="pwd-cancel-btn" onclick="closeDeletePasswordModal()">Cancel</button>
+                        <button class="pwd-confirm-btn" onclick="confirmDeleteWithPassword()">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="checkin" class="section">
+                <div class="header">
+                    <h1>Check In</h1>
+                    <p>Record your attendance for a class</p>
+                </div>
+
+                <div class="attendance-section">
+                    <h2><i class="fas fa-clipboard-check"></i> New Attendance Record</h2>
+                    
+                    <div class="form-group">
+                        <label>Select Class/Course</label>
+                        <select id="courseSelect" onchange="updateCourseInfo()">
+                            <option value="">-- Select a Course --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Class Date</label>
+                            <input type="date" id="classDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Class Time</label>
+                            <input type="time" id="classTime">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Room Number</label>
+                            <input type="text" id="roomNumber" placeholder="e.g., A-201">
+                        </div>
+                        <div class="form-group">
+                            <label>Floor/Building</label>
+                            <input type="text" id="building" placeholder="e.g., Building A">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="statusSelect">
+                            <option value="Present">Present</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Late">Late</option>
+                            <option value="Excused">Excused</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes (Optional)</label>
+                        <input type="text" id="notes" placeholder="Any additional notes...">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="saveAttendance(); return false;">
+                            <i class="fas fa-save"></i> Save Record
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearForm(); return false;">
+                            <i class="fas fa-redo"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Records Section -->
+            <div id="records" class="section">
+                <div class="header">
+                    <h1>Attendance Records</h1>
+                    <p>Your complete attendance history</p>
+                </div>
+
+                <div class="records-list">
+                    <h3><i class="fas fa-history"></i> All Records</h3>
+                    <div id="recordsContainer" style="max-height: 600px; overflow-y: auto;">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No attendance records yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="section">
+                <div class="header">
+                    <h1>Reports</h1>
+                    <p>Your attendance analytics and insights</p>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-calendar-check"></i>
+                            Weekly Summary
+                        </h3>
+                        <div class="stat">
+                            <label>This Week</label>
+                            <span class="stat-value" id="weeklyAttendance">0</span>
+                        </div>
+                        <div class="stat">
+                            <label>Last Week</label>
+                            <span class="stat-value" id="lastWeekAttendance">0</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>
+                            <i class="fas fa-calendar-alt"></i>
+                            Monthly Summary
+                        </h3>
+                        <div class="stat">
+                            <label>This Month</label>
+                            <span class="stat-value" id="monthlyAttendance">0</span>
+                        </div>
+                        <div class="stat">
+                            <label>Rate</label>
+                            <span class="stat-value" id="monthlyRate">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="profile" class="section">
+                <div class="header">
+                    <h1>My Profile</h1>
+                    <p>Your personal information</p>
+                </div>
+
+                <div class="profile-info">
+                    <div class="profile-field">
+                        <span class="profile-label">Name</span>
+                        <span class="profile-value" id="profileName">Not Set</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Email</span>
+                        <span class="profile-value" id="profileEmail">Not Set</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Student ID</span>
+                        <span class="profile-value" id="profileID">Not Set</span>
+                    </div>
+                </div>
+
+                <div class="attendance-section" style="margin-top: 30px;">
+                    <h2><i class="fas fa-edit"></i> Edit Profile</h2>
+                    
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editName" placeholder="Your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editEmail" placeholder="your.email@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        <input type="text" id="editStudentID" placeholder="e.g., CS2024-001">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="updateProfile(); return false;">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Classes Section -->
+            <div id="my-classes" class="section">
+                <div class="header">
+                    <h1>My Classes</h1>
+                    <p>Manage your enrolled classes and add new ones</p>
+                </div>
+                <div class="attendance-section">
+                    <h2 style="color: #4ade80; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                        <i class="fas fa-book"></i> Class Management
+                    </h2>
+                    <!-- Add New Class -->
+                    <div style="margin-bottom: 30px; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px; border: 1px dashed #2d5a5a;">
+                        <h3 style="color: #e0e0e0; margin-bottom: 15px;">Add New Class</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>Course Code</label>
+                                <input type="text" id="newCourseCode2" placeholder="e.g., CS101">
+                            </div>
+                            <div class="form-group">
+                                <label>Course Name</label>
+                                <input type="text" id="newCourseName2" placeholder="e.g., Data Structures">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group">
+                                <label>Instructor Email</label>
+                                <input type="email" id="newCourseInstructor2" placeholder="instructor@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Schedule</label>
+                                <input type="text" id="newCourseSchedule2" placeholder="e.g., Mon/Wed 9:00 AM">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="addNewClassFromNav(); return false;" style="width: 100%;">
+                            <i class="fas fa-plus"></i> Add Class
+                        </button>
+                    </div>
+                    <!-- Classes List -->
+                    <h3 style="color: #e0e0e0; margin-bottom: 15px;">Your Classes</h3>
+                    <div id="classesTableContainer2" style="overflow-x: auto;">
+                        <table class="classes-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Instructor Email</th>
+                                    <th>Schedule</th>
+                                    <th style="text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="classesTableBody2">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #a0a0a0; padding: 20px;">
+                                        <i class="fas fa-inbox"></i> No classes added yet
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section">
+                <div class="header">
+                    <h1>Settings & Management</h1>
+                    <p>Configure system settings and manage your preferences</p>
+                </div>
+
+                <div class="settings-wrapper">
+                    <!-- Settings Menu -->
+                    <div class="settings-menu">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <a href="#" class="settings-menu-item active" data-tab="theme" onclick="switchSettingsTab('theme', event); return false;">
+                                <i class="fas fa-palette"></i>
+                                <span>Theme</span>
+                            </a>
+                            <a href="#" class="settings-menu-item" data-tab="notifications" onclick="switchSettingsTab('notifications', event); return false;">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications</span>
+                            </a>
+                            <a href="#" class="settings-menu-item" data-tab="security" onclick="switchSettingsTab('security', event); return false;">
+                                <i class="fas fa-lock"></i>
+                                <span>Security</span>
+                            </a>
+                            <a href="#" class="settings-menu-item" data-tab="privacy" onclick="switchSettingsTab('privacy', event); return false;">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Privacy</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Settings Content -->
+                    <div>
+                        <!-- Theme Tab (now the default — My Classes moved to sidebar nav) -->
+                        <div id="tab-theme" class="settings-tab active">
+                            <div class="attendance-section">
+                                <h2 style="color: #4ade80; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-palette"></i> Theme Settings
+                                </h2>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                                    <div style="background: rgba(74, 222, 128, 0.05); border: 2px solid #2d5a5a; border-radius: 8px; padding: 20px; cursor: pointer;" onclick="setTheme('dark'); return false;">
+                                        <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #0f1419 0%, #1a2633 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <input type="radio" name="theme" value="dark" id="darkTheme">
+                                            <label for="darkTheme" style="color: #e0e0e0; cursor: pointer;">Dark Mode</label>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: rgba(74, 222, 128, 0.05); border: 2px solid #2d5a5a; border-radius: 8px; padding: 20px; cursor: pointer;" onclick="setTheme('light'); return false;">
+                                        <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <input type="radio" name="theme" value="light" id="lightTheme">
+                                            <label for="lightTheme" style="color: #e0e0e0; cursor: pointer;">Light Mode</label>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: rgba(74, 222, 128, 0.05); border: 2px solid #2d5a5a; border-radius: 8px; padding: 20px; cursor: pointer;" onclick="setTheme('auto'); return false;">
+                                        <div style="width: 100%; height: 60px; background: linear-gradient(135deg, #0f1419 0%, #f5f5f5 100%); border-radius: 6px; margin-bottom: 15px;"></div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <input type="radio" name="theme" value="auto" id="autoTheme">
+                                            <label for="autoTheme" style="color: #e0e0e0; cursor: pointer;">Auto (System)</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="background: rgba(74, 222, 128, 0.05); padding: 20px; border-radius: 8px;">
+                                    <h3 style="color: #e0e0e0; margin-bottom: 15px;">Accent Color</h3>
+                                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                        <div class="accent-swatch" id="swatch-4ade80" style="width: 50px; height: 50px; background: #4ade80; border-radius: 8px; cursor: pointer; border: 3px solid #2d5a5a;" onclick="setAccentColor('#4ade80'); return false;"></div>
+                                        <div class="accent-swatch" id="swatch-60a5fa" style="width: 50px; height: 50px; background: #60a5fa; border-radius: 8px; cursor: pointer; border: 3px solid #2d5a5a;" onclick="setAccentColor('#60a5fa'); return false;"></div>
+                                        <div class="accent-swatch" id="swatch-f87171" style="width: 50px; height: 50px; background: #f87171; border-radius: 8px; cursor: pointer; border: 3px solid #2d5a5a;" onclick="setAccentColor('#f87171'); return false;"></div>
+                                        <div class="accent-swatch" id="swatch-facc15" style="width: 50px; height: 50px; background: #facc15; border-radius: 8px; cursor: pointer; border: 3px solid #2d5a5a;" onclick="setAccentColor('#facc15'); return false;"></div>
+                                        <div class="accent-swatch" id="swatch-a78bfa" style="width: 50px; height: 50px; background: #a78bfa; border-radius: 8px; cursor: pointer; border: 3px solid #2d5a5a;" onclick="setAccentColor('#a78bfa'); return false;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications Tab -->
+                        <div id="tab-notifications" class="settings-tab">
+                            <div class="attendance-section">
+                                <h2 style="color: #4ade80; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-bell"></i> Notification Settings
+                                </h2>
+
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Class Reminders</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Get notified before your classes start</p>
+                                        </div>
+                                        <input type="checkbox" id="notifClass" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Attendance Alerts</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Notifications about your attendance records</p>
+                                        </div>
+                                        <input type="checkbox" id="notifAttendance" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Schedule Updates</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">When your class schedule changes</p>
+                                        </div>
+                                        <input type="checkbox" id="notifSchedule" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Email Notifications</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Receive updates via email</p>
+                                        </div>
+                                        <input type="checkbox" id="notifEmail" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <button class="btn btn-primary" onclick="saveNotificationSettings(); return false;" style="width: 100%; margin-top: 20px;">
+                                        <i class="fas fa-save"></i> Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Tab -->
+                        <div id="tab-security" class="settings-tab">
+                            <div class="attendance-section">
+                                <h2 style="color: #4ade80; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-lock"></i> Security Settings
+                                </h2>
+
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <div style="padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <h3 style="color: #e0e0e0; margin-bottom: 15px;">Active Sessions</h3>
+                                        <div style="background: #0f2020; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div>
+                                                    <p style="color: #e0e0e0; margin-bottom: 5px;">
+                                                        <i class="fas fa-desktop"></i> Current Session
+                                                    </p>
+                                                    <p style="color: #a0a0a0; font-size: 0.9em;" id="currentSessionInfo">Browser • This Device</p>
+                                                </div>
+                                                <span style="color: #4ade80; font-weight: 600;">Active</span>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-secondary" onclick="logoutAllSessions(); return false;" style="width: 100%;">
+                                            <i class="fas fa-sign-out-alt"></i> Logout All Other Sessions
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Tab -->
+                        <div id="tab-privacy" class="settings-tab">
+                            <div class="attendance-section">
+                                <h2 style="color: #4ade80; margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-shield-alt"></i> Privacy Settings
+                                </h2>
+
+                                <div style="display: flex; flex-direction: column; gap: 20px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Show Attendance Publicly</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Allow others to see your attendance</p>
+                                        </div>
+                                        <input type="checkbox" id="privacyPublic" style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Allow Profile Visibility</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Let instructors see your profile</p>
+                                        </div>
+                                        <input type="checkbox" id="privacyProfile" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: rgba(74, 222, 128, 0.05); border-radius: 8px;">
+                                        <div>
+                                            <h4 style="color: #e0e0e0; margin-bottom: 5px;">Data Collection</h4>
+                                            <p style="color: #a0a0a0; font-size: 0.9em;">Allow system to collect usage data for improvements</p>
+                                        </div>
+                                        <input type="checkbox" id="privacyData" checked style="width: 20px; height: 20px; cursor: pointer;">
+                                    </div>
+
+                                    <div style="padding: 20px; background: rgba(239, 68, 68, 0.05); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                        <h3 style="color: #ef4444; margin-bottom: 15px;">Danger Zone</h3>
+                                        <button class="btn" onclick="requestDataExport(); return false;" style="width: 100%; background: #2d5a5a; color: #4ade80; margin-bottom: 10px;">
+                                            <i class="fas fa-download"></i> Export My Data
+                                        </button>
+                                        <button class="btn" onclick="deleteAccount(); return false;" style="width: 100%; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 2px solid #ef4444;">
+                                            <i class="fas fa-trash"></i> Delete Account
+                                        </button>
+                                    </div>
+
+                                    <button class="btn btn-primary" onclick="savePrivacySettings(); return false;" style="width: 100%; margin-top: 20px;">
+                                        <i class="fas fa-save"></i> Save Privacy Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="inactivity.js"></script>
+    <script src="student-dashboard.js"></script>
+    <script>
+    // ── SIDEBAR MOBILE TOGGLE ──
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn     = document.getElementById('hamburgerBtn');
+        const isOpen  = sidebar.classList.toggle('open');
+        overlay.classList.toggle('active', isOpen);
+        btn.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    }
+    function closeSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const btn     = document.getElementById('hamburgerBtn');
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-bars"></i>';
+        document.body.style.overflow = '';
+    }
+    // Close sidebar when a nav item is tapped on mobile
+    document.querySelectorAll('.sidebar .nav-item, .sidebar [data-section]').forEach(el => {
+        el.addEventListener('click', () => {
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+    // Escape key closes sidebar
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSidebar(); });
+    </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(() => console.log('[SW] Registered'))
+            .catch(err => console.warn('[SW] Failed:', err));
+        });
+      }
+    </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── THREE.JS SIDEBAR ANIMATION (matching login page style) ──
+(function() {
+  // Skip 3D sidebar animation on mobile — saves resources and avoids z-index issues
+  if (window.innerWidth <= 768) return;
+
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'sidebar-canvas';
+  canvas.style.cssText = `
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    width: 256px;
+    height: 180px;
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 0;
+    border-radius: 12px;
+  `;
+  sidebar.appendChild(canvas);
+
+  const W = 256, H = 180;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+  camera.position.z = 7;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x4ade80, 0.5));
+  const pl1 = new THREE.PointLight(0x4ade80, 3, 20);
+  pl1.position.set(3, 3, 5);
+  scene.add(pl1);
+  const pl2 = new THREE.PointLight(0x22d3ee, 1.5, 15);
+  pl2.position.set(-3, -2, 3);
+  scene.add(pl2);
+
+  // Main outer torus
+  const torus1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.8, 0.18, 16, 80),
+    new THREE.MeshStandardMaterial({
+      color: 0x4ade80, emissive: 0x4ade80, emissiveIntensity: 0.6,
+      metalness: 0.7, roughness: 0.2
+    })
+  );
+  torus1.rotation.x = Math.PI / 3.5;
+  scene.add(torus1);
+
+  // Middle torus (cyan, tilted differently)
+  const torus2 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.2, 0.1, 12, 60),
+    new THREE.MeshStandardMaterial({
+      color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.7,
+      metalness: 0.8, roughness: 0.15
+    })
+  );
+  torus2.rotation.x = Math.PI / 2.5;
+  torus2.rotation.y = Math.PI / 4;
+  scene.add(torus2);
+
+  // Inner small torus (violet accent)
+  const torus3 = new THREE.Mesh(
+    new THREE.TorusGeometry(0.65, 0.07, 10, 40),
+    new THREE.MeshStandardMaterial({
+      color: 0xa78bfa, emissive: 0xa78bfa, emissiveIntensity: 0.8,
+      metalness: 0.6, roughness: 0.3
+    })
+  );
+  torus3.rotation.x = Math.PI / 5;
+  torus3.rotation.z = Math.PI / 6;
+  scene.add(torus3);
+
+  // Center sphere glow
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 24, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0x4ade80, emissive: 0x4ade80, emissiveIntensity: 1.2,
+      metalness: 0.3, roughness: 0.1
+    })
+  );
+  scene.add(sphere);
+
+  // Floating particles
+  const pCount = 80;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(pCount * 3);
+  for (let i = 0; i < pCount; i++) {
+    pPos[i*3]   = (Math.random() - 0.5) * 12;
+    pPos[i*3+1] = (Math.random() - 0.5) * 8;
+    pPos[i*3+2] = (Math.random() - 0.5) * 6;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  scene.add(new THREE.Points(pGeo,
+    new THREE.PointsMaterial({ color: 0x4ade80, size: 0.05, transparent: true, opacity: 0.6 })
+  ));
+
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    torus1.rotation.z = t * 0.35;
+    torus1.rotation.x = Math.PI / 3.5 + Math.sin(t * 0.3) * 0.15;
+
+    torus2.rotation.z = -t * 0.55;
+    torus2.rotation.y = Math.PI / 4 + Math.sin(t * 0.4) * 0.2;
+
+    torus3.rotation.z = t * 0.9;
+    torus3.rotation.x = Math.PI / 5 + Math.cos(t * 0.5) * 0.2;
+
+    sphere.scale.setScalar(1 + Math.sin(t * 1.5) * 0.1);
+
+    pl1.intensity = 2.5 + Math.sin(t * 0.8) * 0.8;
+    pl1.position.x = Math.sin(t * 0.6) * 3;
+    pl1.position.y = Math.cos(t * 0.4) * 2;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // React to accent color changes so rings match theme
+  const observer = new MutationObserver(() => {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    if (accent) {
+      const hex = parseInt(accent.replace('#',''), 16);
+      torus1.material.color.setHex(hex);
+      torus1.material.emissive.setHex(hex);
+      sphere.material.color.setHex(hex);
+      sphere.material.emissive.setHex(hex);
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
+})();
+</script>
+
+
+<script>
+// ── ACADEMIC BACKGROUND OVERLAY ──────────────────────────
+(function() {
+  const canvas = document.getElementById('academic-bg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth  * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', () => { resize(); });
+
+  const W = () => canvas.offsetWidth;
+  const H = () => canvas.offsetHeight;
+
+  // Academic symbols to float
+  const symbols = [
+    '🎓','📚','📐','📏','✏️','🔬','📝','🧮','📊','📖',
+    '🏫','💡','⚗️','🧪','∑','∫','π','∞','√','Δ','θ','λ',
+    'A+','GPA','3.0','f(x)','y=mx'
+  ];
+
+  // Generate particles
+  const COUNT = 28;
+  const particles = [];
+  for (let i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * 1400,
+      y: Math.random() * 900,
+      sym: symbols[Math.floor(Math.random() * symbols.length)],
+      size: 12 + Math.random() * 20,
+      speed: 0.15 + Math.random() * 0.3,
+      drift: (Math.random() - 0.5) * 0.2,
+      opacity: 0.06 + Math.random() * 0.12,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.005,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  // Grid dot pattern
+  function drawGrid() {
+    const accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent').trim() || '#4ade80';
+    const spacing = 38;
+    ctx.save();
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.045;
+    for (let x = spacing/2; x < W(); x += spacing) {
+      for (let y = spacing/2; y < H(); y += spacing) {
+        ctx.beginPath();
+        ctx.arc(x, y, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // Diagonal ruled lines (notebook feel)
+  function drawLines() {
+    const accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent').trim() || '#4ade80';
+    ctx.save();
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = 0.025;
+    ctx.lineWidth = 1;
+    const gap = 60;
+    for (let i = -H(); i < W() + H(); i += gap) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i + H(), H());
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Corner formula decoration
+  function drawCornerFormulas() {
+    const formulas = [
+      { text: 'GPA = ΣGP / ΣCr', x: 0.78, y: 0.08 },
+      { text: 'P(A) = n(A)/n(S)',  x: 0.04, y: 0.92 },
+      { text: 'Attendance = P/T',  x: 0.55, y: 0.96 },
+    ];
+    const accent = getComputedStyle(document.documentElement)
+      .getPropertyValue('--accent').trim() || '#4ade80';
+    ctx.save();
+    ctx.font = '500 11px "Space Mono", monospace';
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.1;
+    formulas.forEach(f => {
+      ctx.fillText(f.text, W() * f.x, H() * f.y);
+    });
+    ctx.restore();
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W(), H());
+    frame++;
+
+    drawGrid();
+    drawLines();
+    drawCornerFormulas();
+
+    // Floating symbols
+    particles.forEach(p => {
+      p.y -= p.speed;
+      p.x += p.drift + Math.sin(frame * 0.01 + p.phase) * 0.15;
+      p.rotation += p.rotSpeed;
+
+      // Wrap around
+      if (p.y < -40) { p.y = H() + 20; p.x = Math.random() * W(); }
+      if (p.x < -40) p.x = W() + 20;
+      if (p.x > W() + 40) p.x = -20;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.font = `${p.size}px serif`;
+      ctx.globalAlpha = p.opacity + Math.sin(frame * 0.02 + p.phase) * 0.03;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Use accent color for text symbols (non-emoji)
+      if (p.sym.length <= 4 && !/\p{Emoji}/u.test(p.sym)) {
+        const accent = getComputedStyle(document.documentElement)
+          .getPropertyValue('--accent').trim() || '#4ade80';
+        ctx.fillStyle = accent;
+        ctx.font = `bold ${p.size}px "Space Mono", monospace`;
+      } else {
+        ctx.fillStyle = '#ffffff';
+      }
+
+      ctx.fillText(p.sym, 0, 0);
+      ctx.restore();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ namespace AttendanceAPI.Services
 {
     public class StudentService : IStudentService
     {
-        // FIX: Use Data/ subfolder with absolute path so files are always found
+        // Use Data/ subfolder with absolute path so files are always found
         // regardless of the working directory when the app runs
         private static readonly string _dataDir = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data");
         private static string _studentFile => Path.Combine(_dataDir, "students_data.txt");
@@ -16,7 +16,7 @@ namespace AttendanceAPI.Services
         private static string _courseFile => Path.Combine(_dataDir, "student_courses.txt");
         private static int _nextCourseId = 1;
 
-        // BUG-02 FIX: Locks to prevent race conditions on concurrent file writes
+        // FIX: Locks to prevent race conditions on concurrent file writes
         private static readonly object _attendanceLock = new object();
         private static readonly object _courseLock = new object();
         private static readonly object _studentLock = new object();
@@ -28,7 +28,7 @@ namespace AttendanceAPI.Services
 
         private void EnsureFilesExist()
         {
-            // FIX: Ensure the Data/ directory exists before creating files
+            
             if (!Directory.Exists(_dataDir))
                 Directory.CreateDirectory(_dataDir);
 
@@ -117,8 +117,8 @@ namespace AttendanceAPI.Services
         {
             try
             {
-                // FIX: Creates a new student entry in students_data.txt
-                // Called when UpdateStudentProfile returns null (student not yet registered)
+               
+                // Called when UpdateStudentProfile returns null (student di pa yet registered)
                 string enrolledDate = DateTime.Now.ToString("yyyy-MM-dd");
                 string entry = $"{studentId}|{studentDTO.FullName}|{studentDTO.Email}|{studentDTO.StudentId ?? studentId}|{studentDTO.Program ?? ""}|{studentDTO.YearLevel ?? ""}||{enrolledDate}|true|{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n";
                 File.AppendAllText(_studentFile, entry);
@@ -159,7 +159,7 @@ namespace AttendanceAPI.Services
 
                 string record = $"{attendance.Id}|{attendance.StudentId}|{attendance.CourseId}|{attendance.CourseName}|{attendance.Status}|{attendance.Date:yyyy-MM-dd}|{attendance.Time}|{attendance.Room}|{attendance.Building}|{attendance.Notes}|{attendance.Timestamp:yyyy-MM-dd HH:mm:ss}";
 
-                // BUG-02 FIX: Lock file write to prevent race conditions
+                
                 lock (_attendanceLock)
                 {
                     File.AppendAllText(_attendanceFile, record + "\n");
@@ -247,7 +247,7 @@ namespace AttendanceAPI.Services
                 if (!File.Exists(_attendanceFile))
                     return false;
 
-                // BUG-02 FIX: Lock file access to prevent race conditions
+                
                 lock (_attendanceLock)
                 {
                     var lines = File.ReadAllLines(_attendanceFile).ToList();
@@ -262,10 +262,10 @@ namespace AttendanceAPI.Services
                         if (!(parts.Length > 0 && int.TryParse(parts[0], out int id) && id == recordId))
                             return true;
 
-                        // BUG-01 FIX: Verify the record belongs to the requesting user
+                       
                         // parts[1] is studentId in the attendance record format
                         if (parts.Length > 1 && !string.Equals(parts[1].Trim(), ownerId, StringComparison.OrdinalIgnoreCase))
-                            return true; // Not this user's record — leave it in
+                            return true; // Not this user's record leave it in
 
                         return false; // Remove this record
                     }).ToList();
@@ -368,7 +368,7 @@ namespace AttendanceAPI.Services
                         if (!(parts.Length > 0 && int.TryParse(parts[0], out int id) && id == courseId))
                             return true;
 
-                        // BUG-01 FIX: Verify the course belongs to the requesting student
+                        
                         // parts[1] is studentId in the course record format
                         if (parts.Length > 1 && !string.Equals(parts[1].Trim(), ownerId, StringComparison.OrdinalIgnoreCase))
                             return true; // Not this user's course — leave it

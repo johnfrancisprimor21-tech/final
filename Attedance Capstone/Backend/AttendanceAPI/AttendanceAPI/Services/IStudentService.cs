@@ -20,7 +20,7 @@ namespace AttendanceAPI.Services
         // Course Management
         List<Course> GetStudentCourses(string studentId);
         Course AddCourse(string studentId, CourseDTO courseDTO);
-        // BUG-01 FIX: ownerId param enforces that only the course owner can remove
+        // BUG FIX: ownerId param enforces that only the course owner can remove
         bool RemoveCourse(int courseId, string ownerId);
 
         // Reports

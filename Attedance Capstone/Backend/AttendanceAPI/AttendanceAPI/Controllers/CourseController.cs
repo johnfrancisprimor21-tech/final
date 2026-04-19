@@ -12,9 +12,9 @@ namespace AttendanceAPI.Controllers
         private readonly string _coursesFilePath = "courses.txt";
         private readonly ILogger<CoursesController> _logger;
 
-        // FIX: Use camelCase JSON options to match ASP.NET's global policy
-        // Without this, ReadCoursesFromFile() deserializes with PascalCase (default)
-        // which fails to map fields written by ASP.NET's camelCase serializer
+        // FIX: Use camelCase JSON options pra mo match ASP.NET's global policy
+        // Wala ni, ReadCoursesFromFile() deserializes with PascalCase (default)
+        //  fails to map fields written by ASP.NET's camelCase serializer
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -56,7 +56,7 @@ namespace AttendanceAPI.Controllers
         {
             try
             {
-                // FIX: Validate both CourseCode and StudentId since both are required
+                
                 if (course == null)
                     return BadRequest(new { message = "Course data is required" });
 
@@ -132,7 +132,7 @@ namespace AttendanceAPI.Controllers
         {
             try
             {
-                // FIX: Use same camelCase options for consistency
+                
                 var json = JsonSerializer.Serialize(courses, _jsonOptions);
                 System.IO.File.WriteAllText(_coursesFilePath, json);
             }

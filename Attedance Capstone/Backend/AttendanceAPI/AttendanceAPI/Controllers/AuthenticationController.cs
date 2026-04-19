@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
-// Alias fixes CS0119: inside a Controller, bare "File" resolves to
+
 // ControllerBase.File() instead of System.IO.File. This alias removes ambiguity.
 using SysFile = System.IO.File;
 
@@ -95,7 +95,7 @@ namespace AttendanceAPI.Controllers
             if (user == null || !VerifyPassword(req.Password, user["passwordHash"]))
                 return Unauthorized(new { message = "Incorrect username or password." });
 
-            // NEW-02 FIX: Invalidate any previous active sessions for this user before
+           
             // issuing a new one. Prevents old stolen session IDs from remaining valid.
             InvalidateAllSessionsForUser(username);
 
@@ -103,7 +103,7 @@ namespace AttendanceAPI.Controllers
             string sessionToken = GenerateSecureToken();
             string expiresAt = DateTime.Now.AddHours(SESSION_HOURS).ToString("yyyy-MM-dd HH:mm:ss");
 
-            // Format: sessionId|username|token|createdAt|expiresAt|status|role
+           
             // role starts as "none" — client must call /select-role after choosing Teacher or Student
             string entry = $"{sessionId}|{username}|{sessionToken}|{DateTime.Now:yyyy-MM-dd HH:mm:ss}|{expiresAt}|active|none";
             SysFile.AppendAllText(SessionsFile, entry + "\n");
@@ -242,7 +242,7 @@ namespace AttendanceAPI.Controllers
             if (!VerifyAnswer(req.Answer.Trim().ToLower(), user["answerHash"]))
                 return Unauthorized(new { message = "Incorrect answer." });
 
-            // NEW-01 FIX: Issue a short-lived reset token (15 min) so the backend can
+           
             // verify the client actually passed the security-answer step before resetting.
             string resetToken = GenerateSecureToken();
             string expiresAt  = DateTime.Now.AddMinutes(15).ToString("yyyy-MM-dd HH:mm:ss");
@@ -273,7 +273,7 @@ namespace AttendanceAPI.Controllers
 
             string username = req.Username.Trim().ToLower();
 
-            // NEW-01 FIX: Validate and consume the reset token
+           
             if (!ConsumeResetToken(username, req.ResetToken))
                 return Unauthorized(new { message = "Reset token is invalid or has expired. Please restart the forgot-password flow." });
 
@@ -342,7 +342,7 @@ namespace AttendanceAPI.Controllers
             catch { return false; }
         }
 
-        // BUG-05 FIX: Use salted PBKDF2 for security answers (same as passwords).
+        
         // Bare SHA-256 with no salt was trivially crackable via precomputed tables.
         private static string HashAnswer(string value)
         {
@@ -353,7 +353,7 @@ namespace AttendanceAPI.Controllers
             return $"{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
         }
 
-        // BUG-05 FIX: Constant-time verify for the salted answer hash
+        
         private static bool VerifyAnswer(string value, string stored)
         {
             try
@@ -487,7 +487,7 @@ namespace AttendanceAPI.Controllers
         }
 
         // ============================================================
-        // HELPER — RESET TOKENS  (NEW-01 FIX)
+        // HELPER — RESET TOKENS 
         // Format: username|token|expiresAt
         // ConsumeResetToken validates and deletes the token in one step
         // so each token is single-use.
@@ -512,7 +512,7 @@ namespace AttendanceAPI.Controllers
                     // Match and consume
                     if (p[0] == username && p[1] == token)
                     {
-                        found = true; // consume — do NOT add to remaining
+                        found = true; // consume do NOT add to remaining
                         continue;
                     }
                     remaining.Add(line);

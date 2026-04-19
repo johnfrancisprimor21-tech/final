@@ -167,7 +167,7 @@ namespace AttendanceAPI.Controllers
                 Status    = req.Status,
                 Date      = req.Date ?? DateTime.Now
             };
-            // BUG-04 FIX: AddAttendance now returns (bool added, string message) to surface duplicates
+            
             var (added, msg) = DataService.AddAttendance(attendance, teacherId, req.SectionCode ?? "");
             if (!added)
                 return Conflict(new { message = msg });
@@ -193,7 +193,7 @@ namespace AttendanceAPI.Controllers
                     Status    = rec.Status ?? "Present",
                     Date      = rec.Date ?? DateTime.Now
                 };
-                // BUG-04 FIX: Count duplicates as failures
+                
                 var (added, _) = DataService.AddAttendance(attendance, teacherId, rec.SectionCode ?? "");
                 if (added) success++; else failed++;
             }
@@ -316,7 +316,7 @@ namespace AttendanceAPI.Controllers
                 : NotFound(new { message = "Record not found." });
         }
 
-        // BUG-06 FIX: Whitelist of valid statuses to prevent injection via route param
+        
         private static readonly HashSet<string> ValidStatuses =
             new(StringComparer.OrdinalIgnoreCase) { "Present", "Absent", "Late" };
 

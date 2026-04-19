@@ -33,10 +33,10 @@ namespace AttendanceAPI.Controllers
                 return null;
             }
 
-            // BUG-03 FIX: Also validate the session token
+            
             Request.Headers.TryGetValue("X-Session-Token", out var sessionToken);
 
-            // BUG-09 FIX: Use GetStudentIdFromSession — rejects sessions with role != "student"
+            
             var userId = DataService.GetStudentIdFromSession(sessionId!, sessionToken.ToString());
             if (userId == null)
             {
@@ -230,7 +230,7 @@ namespace AttendanceAPI.Controllers
                 var userId = ResolveUser(out var err);
                 if (userId == null) return err!;
 
-                // BUG-01 FIX: Pass userId so only the record owner can delete
+                
                 var deleted = _studentService.DeleteAttendanceRecord(recordId, userId);
                 if (!deleted) return NotFound(new { message = "Attendance record not found" });
                 return Ok(new { message = "Attendance record deleted" });

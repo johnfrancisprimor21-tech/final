@@ -49,14 +49,13 @@ namespace AttendanceAPI.Services
         // =====================================================
 
         // Session file format: sessionId|username|token|createdAt|expiresAt|status|role
-        // BUG-03 FIX: token is validated.
-        // BUG-09 FIX: role must be "teacher" — students cannot access teacher endpoints.
+       
         public static string? GetTeacherIdFromSession(string sessionId, string sessionToken = "")
         {
             return ResolveSession(sessionId, sessionToken, requiredRole: "teacher");
         }
 
-        // BUG-09 FIX: Student endpoints use this — role must be "student".
+        
         public static string? GetStudentIdFromSession(string sessionId, string sessionToken = "")
         {
             return ResolveSession(sessionId, sessionToken, requiredRole: "student");
@@ -77,11 +76,11 @@ namespace AttendanceAPI.Services
                     if (p[5] != "active") continue;
                     if (DateTime.TryParse(p[4], out DateTime exp) && DateTime.Now > exp) continue;
 
-                    // BUG-03 FIX: Validate token when provided
+                   
                     if (!string.IsNullOrWhiteSpace(sessionToken) && p[2] != sessionToken)
                         continue;
 
-                    // BUG-09 FIX: Enforce role — p[6] must match the required role
+                    
                     string sessionRole = p.Length >= 7 ? p[6].Trim().ToLower() : "none";
                     if (sessionRole != requiredRole) continue;
 
@@ -314,7 +313,7 @@ namespace AttendanceAPI.Services
 
             lock (_attendanceLock)
             {
-                // BUG-04 FIX: Prevent duplicate attendance records for the same student/date/teacher
+                // Prevent duplicate attendance records for the same student/date/teacher
                 if (File.Exists(AttendanceFile))
                 {
                     foreach (var r in File.ReadAllLines(AttendanceFile))
